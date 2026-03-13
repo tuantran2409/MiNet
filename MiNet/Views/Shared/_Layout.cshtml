@@ -77,8 +77,8 @@
                                 <div class="p-4 py-5 flex items-center gap-4">
                                     <img src="~/images/avatar/user.png" class="w-10 h-10 rounded-full shadow" />
                                     <div class="flex-1">
-                                        <h4 class="text-sm font-medium text-black">Tuantran</h4>
-                                        <div class="text-sm mt-1 text-blue-600 font-light/70">Tuantran</div>
+                                        <h4 class="text-sm font-medium text-black">TuanTran</h4>
+                                        <div class="text-sm mt-1 text-blue-600 font-light/70">TuanTran</div>
                                     </div>
                                 </div>
                             </a>
@@ -93,6 +93,7 @@
                                 <a>
                                     <div class="flex items-center gap-2.5 hover:bg-secondery p-2 px-2.5 rounded-md">
                                         <ion-icon name="exit-outline" class="text-lg"></ion-icon> Log Out
+
                                     </div>
                                 </a>
                             </nav>
@@ -108,19 +109,18 @@
         @RenderBody()
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; MiNet
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @* //asset script *@
+    @* Asset scripts *@
     <script src="~/js/uikit.min.js"></script>
     <script src="~/js/simplebar.js"></script>
     <script src="~/js/script.js"></script>
+
+    @* Ion Icon *@
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
