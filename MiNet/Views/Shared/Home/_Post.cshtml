@@ -16,6 +16,7 @@
     bool isFavorited = Model.Favorites.Any(n => n.UserId == 1);
     bool isLike = Model.Likes.Any(n => n.UserId == 1);
     bool isPrivate = Model.IsPrivate == true && Model.UserId == 1;
+    bool isReported = Model.Reports.Any(n => n.UserId == 1);
 }
 
 <div class="bg-white rounded-xl shadow-sm text-sm font-medium border1">
@@ -53,12 +54,15 @@
                     </button>
                 </form>
 
-                <form asp-controller="Home" asp-action="Report">
-                    <input type="hidden" name="postId" />
-                    <button type="submit" class="hover:!bg-red-50 icon-link">
-                        <ion-icon class="text-xl shrink-0" name="flag-outline"></ion-icon>  Report
-                    </button>
-                </form>
+                @if(!isReported)
+                {
+                    <form asp-controller="Home" asp-action="AddPostReport">
+                        <input type="hidden" name="postId" value="@Model.Id" />
+                        <button type="submit" class="hover:!bg-red-50 icon-link">
+                            <ion-icon class="text-xl shrink-0" name="flag-outline"></ion-icon>  Report
+                        </button>
+                    </form>
+                }
             </div>
         </div>
     </div>
