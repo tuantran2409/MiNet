@@ -12,7 +12,8 @@ namespace MiNet.Data.Models
         public bool IsPrivate { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdate { get; set; }
-        
+        public bool IsDeleted { get; set; }
+
         //Foreign key
         public int UserId { get; set; }
 
