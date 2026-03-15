@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36511.14 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11605.240 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiNet", "MiNet\MiNet.csproj", "{BD59E4F7-9E47-4DE4-823B-ED6C08EDE69F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiNet.Data", "MiNet.Data\MiNet.Data.csproj", "{CA65075E-9DA8-485E-AF7D-228093C9547A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{BD59E4F7-9E47-4DE4-823B-ED6C08EDE69F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD59E4F7-9E47-4DE4-823B-ED6C08EDE69F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD59E4F7-9E47-4DE4-823B-ED6C08EDE69F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA65075E-9DA8-485E-AF7D-228093C9547A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA65075E-9DA8-485E-AF7D-228093C9547A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA65075E-9DA8-485E-AF7D-228093C9547A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA65075E-9DA8-485E-AF7D-228093C9547A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
