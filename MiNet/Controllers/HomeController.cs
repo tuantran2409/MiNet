@@ -22,6 +22,8 @@ namespace MiNet.Controllers
         {
             var allPosts = await _context.Posts
                 .Include(u => u.User)
+                .Include(n => n.Likes)
+                .Include(n => n.Comments).ThenInclude(u => u.User)
                 .OrderByDescending(d => d.DateCreated)
                 .ToListAsync();
 
@@ -96,6 +98,40 @@ namespace MiNet.Controllers
                     UserId = loggedInUserId
                 };
                 await _context.Likes.AddAsync(newLike);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("Index");
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddPostComment(PostCommentVM postCommentVM) 
+        {
+            //get the logged in user
+            int loggedInUserId = 1;
+
+            //create a comment object
+            var newComment = new Comment()
+            {
+                UserId = loggedInUserId,
+                PostId = postCommentVM.PostId,
+                Content = postCommentVM.Content,
+                DateCreated = DateTime.Now,
+                DateUpdated = DateTime.Now
+            };
+            await _context.Comments.AddAsync(newComment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemovePostComment(RemoveCommentVM removeCommentVM)
+        {
+            var commentDb = await _context.Comments.FirstOrDefaultAsync(c => c.Id == removeCommentVM.CommentId);
+
+            if(commentDb != null)
+            {
+                _context.Comments.Remove(commentDb);
                 await _context.SaveChangesAsync();
             }
 
