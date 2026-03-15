@@ -23,6 +23,7 @@ namespace MiNet.Controllers
             var allPosts = await _context.Posts
                 .Include(u => u.User)
                 .Include(n => n.Likes)
+                .Include(n => n.Favorites)
                 .Include(n => n.Comments).ThenInclude(u => u.User)
                 .OrderByDescending(d => d.DateCreated)
                 .ToListAsync();
@@ -85,6 +86,7 @@ namespace MiNet.Controllers
             var like = await _context.Likes
                 .Where(l => l.PostId ==  postLikeVM.PostId && l.UserId == loggedInUserId)
                 .FirstOrDefaultAsync();
+
             if (like != null)
             {
                 _context.Likes.Remove(like);
@@ -103,6 +105,37 @@ namespace MiNet.Controllers
 
             return RedirectToAction("Index");
         }
+
+        [HttpPost]
+        public async Task<IActionResult> TogglePostFavorite(PostFavoriteVM postFavoriteVM)
+        {
+            //get the logged in user
+            int loggedInUserId = 1;
+
+            //check if the user has already liked the post
+            var favorite = await _context.Favorites
+                .Where(l => l.PostId == postFavoriteVM.PostId && l.UserId == loggedInUserId)
+                .FirstOrDefaultAsync();
+
+            if (favorite != null)
+            {
+                _context.Favorites.Remove(favorite);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                var newFavorite = new Favorite()
+                {
+                    PostId = postFavoriteVM.PostId,
+                    UserId = loggedInUserId
+                };
+                await _context.Favorites.AddAsync(newFavorite);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("Index");
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddPostComment(PostCommentVM postCommentVM) 
         {
