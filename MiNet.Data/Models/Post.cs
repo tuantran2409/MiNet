@@ -9,9 +9,10 @@ namespace MiNet.Data.Models
         public String Content { get; set; }
         public String? ImageUrl { get; set; }
         public int NrOfReports { get; set; }
+        public bool IsPrivate { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdate { get; set; }
-
+        
         //Foreign key
         public int UserId { get; set; }
 

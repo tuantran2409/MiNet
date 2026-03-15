@@ -20,7 +20,11 @@ namespace MiNet.Controllers
 
         public async Task<IActionResult> Index()
         {
+            //get the loggedin User Id
+            int loggedInUserId = 1;
+
             var allPosts = await _context.Posts
+                .Where(n => !n.IsPrivate || n.UserId == loggedInUserId)
                 .Include(u => u.User)
                 .Include(n => n.Likes)
                 .Include(n => n.Favorites)
@@ -133,6 +137,26 @@ namespace MiNet.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TogglePostVisibility(PostVisibilityVM postVisibilityVM)
+        {
+            //get the logged in user
+            int loggedInUserId = 1;
+
+            //get post by id and loggedIn User Id
+            var post = await _context.Posts
+                .FirstOrDefaultAsync(l => l.Id == postVisibilityVM.PostId && l.UserId == loggedInUserId);
+
+            if (post != null)
+            {
+                post.IsPrivate = !post.IsPrivate;
+                _context.Posts.Update(post);
+                await _context.SaveChangesAsync();
+            }
+            
             return RedirectToAction("Index");
         }
 
