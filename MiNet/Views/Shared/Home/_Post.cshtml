@@ -41,13 +41,13 @@
                     <form asp-controller="Home" asp-action="TogglePostVisibility">
                         <input type="hidden" name="postId" value="@Model.Id" />
                         <button type="submit" class="hover:!bg-red-50 icon-link">
-                            <ion-icon name="@(isPrivate ? "lock-open-outline" : "lock-closed-outline")"></ion-icon>  Set as @(isPrivate ? "public" : "private")
+                            <ion-icon class="text-xl shrink-0" name="@(isPrivate ? "lock-open-outline" : "lock-closed-outline")"></ion-icon>  Set as @(isPrivate ? "public" : "private")
                         </button>
                     </form>
                     <hr>
 
                     <button type="button" onclick="openPostDeleteConfirmation('@Model.Id')" class="text-red-400 hover:!bg-red-50 delete-post-btn">
-                        <ion-icon name="trash-bin-outline"></ion-icon>  Delete Post
+                        <ion-icon class="text-xl shrink-0" name="trash-bin-outline"></ion-icon>  Delete Post
                     </button>
                 }
 
