@@ -9,8 +9,10 @@ namespace MiNet.Data.Models
         public String Content { get; set; }
         public String? ImageUrl { get; set; }
         public int NrOfReports { get; set; }
+        public bool IsPrivate { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdate { get; set; }
+        public bool IsDeleted { get; set; }
 
         //Foreign key
         public int UserId { get; set; }
@@ -20,5 +22,6 @@ namespace MiNet.Data.Models
         public ICollection<Like> Likes { get; set; } = new List<Like>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+        public ICollection<Report> Reports { get; set; } = new List<Report>();
     }
 }
