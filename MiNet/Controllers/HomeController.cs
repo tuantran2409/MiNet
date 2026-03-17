@@ -253,6 +253,22 @@ namespace MiNet.Controllers
                 postDb.IsDeleted = true;
                 _context.Posts.Update(postDb);
                 await _context.SaveChangesAsync();
+
+                //Update hashtag
+                var postHashtags = HashtagHelper.GetHashtags(postDb.Content);
+                foreach(var hashTag in postHashtags)
+                {
+                    var hashtagDb = await _context.Hashtags.FirstOrDefaultAsync(n => n.Name == hashTag);
+                    if(hashtagDb != null)
+                    {
+                        hashtagDb.Count -= 1;
+                        hashtagDb.DateUpdate = DateTime.Now;
+
+                        _context.Hashtags.Update(hashtagDb);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
             }
 
             return RedirectToAction("Index");
