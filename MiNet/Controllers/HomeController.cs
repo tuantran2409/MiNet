@@ -59,7 +59,7 @@ namespace MiNet.Controllers
                 String rootFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 if (post.Image.ContentType.Contains("image"))
                 {
-                    String rootFolderPathImages = Path.Combine(rootFolderPath, "images/uploaded");
+                    String rootFolderPathImages = Path.Combine(rootFolderPath, "images/posts");
                     Directory.CreateDirectory(rootFolderPathImages);
 
                     String fileName = Guid.NewGuid().ToString() + Path.GetExtension(post.Image.FileName);
@@ -69,7 +69,7 @@ namespace MiNet.Controllers
                         await post.Image.CopyToAsync(stream);
 
                     //set the url to the newPost object
-                    newPost.ImageUrl = "/images/uploaded/" + fileName;
+                    newPost.ImageUrl = "/images/posts/" + fileName;
                 }
             }
 
