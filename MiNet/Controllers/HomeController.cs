@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiNet.Data;
+using MiNet.Data.Helpers;
 using MiNet.Data.Models;
 using MiNet.ViewModels.Home;
 
@@ -78,6 +79,34 @@ namespace MiNet.Controllers
             await _context.Posts.AddAsync(newPost);
             await _context.SaveChangesAsync();
 
+            //find and store the hashtags
+            var postHashtags = HashtagHelper.GetHashtags(post.Content);
+            foreach(var hashTag in postHashtags)
+            {
+                var hashtagDb = await _context.Hashtags.FirstOrDefaultAsync(n => n.Name == hashTag);
+                if(hashtagDb != null)
+                {
+                    hashtagDb.Count += 1;
+                    hashtagDb.DateUpdate = DateTime.Now;
+
+                    _context.Hashtags.Update(hashtagDb);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    var newHashtag = new Hashtag()
+                    {
+                        Name = hashTag,
+                        Count = 1,
+                        DateCreated = DateTime.Now,
+                        DateUpdate  = DateTime.Now
+                    };
+
+                    await _context.Hashtags.AddAsync(newHashtag);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            //redirect to the index page
             return RedirectToAction("Index");
         }
 
