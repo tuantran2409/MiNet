@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiNet.Data.Models;
+using MiNet.Data.Services;
 using MiNet.ViewModels.Stories;
 using MiNet.Data;
 
@@ -8,11 +9,11 @@ namespace MiNet.Controllers
 {
     public class StoriesController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IStoriesService _storiesService;
         
-        public StoriesController(AppDbContext context)
+        public StoriesController(IStoriesService storiesService)
         {
-            _context = context;
+            _storiesService = storiesService;
         }
 
         [HttpPost]
@@ -29,27 +30,7 @@ namespace MiNet.Controllers
             };
 
             //Check and save the image
-            if (storyVM.Image != null && storyVM.Image.Length > 0)
-            {
-                string rootFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                if (storyVM.Image.ContentType.Contains("image"))
-                {
-                    string rootFolderPathImages = Path.Combine(rootFolderPath, "images/stories");
-                    Directory.CreateDirectory(rootFolderPathImages);
-
-                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(storyVM.Image.FileName);
-                    string filePath = Path.Combine(rootFolderPathImages, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                        await storyVM.Image.CopyToAsync(stream);
-
-                    //Set the URL to the newPost object
-                    newStory.ImageUrl = "/images/stories/" + fileName;
-                }
-            }
-
-            await _context.Stories.AddAsync(newStory);
-            await _context.SaveChangesAsync();
+            await _storiesService.CreateStoryAsync(newStory, storyVM.Image);
 
             return RedirectToAction("Index","Home");
         }

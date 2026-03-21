@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MiNet.Data;
 using MiNet.Data.Helpers;
+using MiNet.Data.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -10,6 +11,13 @@ builder.Services.AddControllersWithViews();
 // Database Configuration
 var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(Options => Options.UseSqlServer(dbConnectionString));
+
+// Services Configuration
+builder.Services.AddScoped<IPostsService, PostsService>();
+builder.Services.AddScoped<IHashtagsService, HashtagsService>();
+builder.Services.AddScoped<IStoriesService, StoriesService>();
+
+
 var app = builder.Build();
 
 //Seed the Database with initial data
