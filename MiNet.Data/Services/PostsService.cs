@@ -33,28 +33,27 @@ namespace MiNet.Data.Services
             return allPosts;
         }
 
-        public async Task<Post> CreatePostAsync(Post post, IFormFile image) 
+        public async Task<List<Post>> GetAllFavoritedPostsAsync(int loggedInUserId)
         {
-            //check and save an image
-            if (image != null && image.Length > 0)
-            {
-                string rootFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                if (image.ContentType.Contains("image"))
-                {
-                    string rootFolderPathImages = Path.Combine(rootFolderPath, "images/posts");
-                    Directory.CreateDirectory(rootFolderPathImages);
+            var allFavoritedPosts = await _context.Favorites
+                .Include(f => f.Post.Reports)
+                .Include(f => f.Post.User)
+                .Include(f => f.Post.Comments)
+                    .ThenInclude(c => c.User)
+                .Include(f => f.Post.Likes)
+                .Include(f => f.Post.Favorites)
+                    .Where(n => n.UserId == loggedInUserId &&
+                    !n.Post.IsDeleted &&
+                    n.Post.Reports.Count < 5)
+                .OrderByDescending(f => f.DateCreated)
+                .Select(n => n.Post)
+                .ToListAsync();
 
-                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
-                    string filePath = Path.Combine(rootFolderPathImages, fileName);
+            return allFavoritedPosts;
+        }
 
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                        await image.CopyToAsync(stream);
-
-                    //Set the URL to the newPost object
-                    post.ImageUrl = "/images/posts/" + fileName;
-                }
-            }
-
+        public async Task<Post> CreatePostAsync(Post post) 
+        {
             await _context.Posts.AddAsync(post);
             await _context.SaveChangesAsync();
 
@@ -145,7 +144,8 @@ namespace MiNet.Data.Services
                 var newFavorite = new Favorite()
                 {
                     PostId = postId,
-                    UserId = userId
+                    UserId = userId,
+                    DateCreated = DateTime.Now,
                 };
                 await _context.AddAsync(newFavorite);
                 await _context.SaveChangesAsync();

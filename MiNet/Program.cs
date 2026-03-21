@@ -16,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(Options => Options.UseSqlServer(dbCo
 builder.Services.AddScoped<IPostsService, PostsService>();
 builder.Services.AddScoped<IHashtagsService, HashtagsService>();
 builder.Services.AddScoped<IStoriesService, StoriesService>();
+builder.Services.AddScoped<IFilesService, FilesService>();
 
 
 var app = builder.Build();

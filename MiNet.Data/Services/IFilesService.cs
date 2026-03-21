@@ -1,4 +1,4 @@
-﻿using MiNet.Data.Models;
+﻿using MiNet.Data.Helpers.Enums;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace MiNet.Data.Services
 {
-    public interface IStoriesService
+    public interface IFilesService
     {
-        Task<List<Story>> GetAllStoriesAsync();
-        Task<Story> CreateStoryAsync(Story story);
+        Task<string> UploadImageAsync(IFormFile file, ImageFileType imageFileType);
     }
 }

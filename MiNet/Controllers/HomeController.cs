@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiNet.Data;
 using MiNet.Data.Helpers;
+using MiNet.Data.Helpers.Enums;
 using MiNet.Data.Models;
 using MiNet.ViewModels.Home;
 using MiNet.Data.Services;
@@ -15,15 +16,18 @@ namespace MiNet.Controllers
         private readonly AppDbContext _context;
         private readonly IPostsService _postsService;
         private readonly IHashtagsService _hashtagsService;
+        private readonly IFilesService _filesService;
 
         public HomeController(ILogger<HomeController> logger, AppDbContext context, 
             IPostsService postsService,
-            IHashtagsService hashtagsService)
+            IHashtagsService hashtagsService,
+            IFilesService filesService)
         {
             _logger = logger;
             _context = context;
             _postsService = postsService;
             _hashtagsService = hashtagsService;
+            _filesService = filesService;
         }
 
         public async Task<IActionResult> Index()
@@ -42,19 +46,22 @@ namespace MiNet.Controllers
             //get the logged in user
             int loggedInUser = 1;
 
+            //get the upload img url
+            var imageUploadPath = await _filesService.UploadImageAsync(post.Image,ImageFileType.PostImage);
+
             //create a new post
             var newPost = new Post
             {
                 Content = post.Content,
                 DateCreated = DateTime.Now,
                 DateUpdate = DateTime.Now,
-                ImageUrl = "",
+                ImageUrl = imageUploadPath,
                 NrOfReports = 0,
                 UserId = loggedInUser
             };
 
             //add the post to the database
-            await _postsService.CreatePostAsync(newPost, post.Image);
+            await _postsService.CreatePostAsync(newPost);
 
             //find and store the hashtags
             await _hashtagsService.ProcessHashtagsForNewPostAsync(post.Content);
