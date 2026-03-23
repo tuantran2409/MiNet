@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using MiNet.Data;
 using MiNet.Data.Helpers;
 using MiNet.Data.Helpers.Enums;
@@ -10,6 +11,7 @@ using MiNet.Data.Services;
 
 namespace MiNet.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

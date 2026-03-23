@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MiNet.Data;
 using MiNet.Data.Helpers.Enums;
@@ -9,6 +10,7 @@ using MiNet.ViewModels.Stories;
 
 namespace MiNet.Controllers
 {
+    [Authorize]
     public class StoriesController : Controller
     {
         private readonly IStoriesService _storiesService;

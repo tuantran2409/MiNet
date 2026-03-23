@@ -1,8 +1,10 @@
 ﻿using MiNet.Data.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MiNet.Controllers
 {
+    [Authorize]
     public class FavoritesController : Controller
     {
         private readonly IPostsService _postsService;

@@ -12,6 +12,7 @@ namespace MiNet.Data.Models
     {
         public String Name { get; set; }
         public String? ProfilePictureUrl { get; set; }
+        public string? Bio { get; set; }
         public bool IsDeleted { get; set; }
 
         //Navigation properties

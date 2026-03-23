@@ -1,9 +1,11 @@
 ﻿using MiNet.Data.Services;
 using MiNet.ViewModels.Settings;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MiNet.Controllers
 {
+    [Authorize]
     public class SettingsController : Controller
     {
         private readonly IUsersService _usersService;
@@ -29,18 +31,6 @@ namespace MiNet.Controllers
 
             await _usersService.UpdateUserProfilePicture(loggedInUser, uploadedProfilePictureUrl);
 
-            return RedirectToAction("Index");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> UpdateProfile(UpdateProfileVM profileVM)
-        {
-            return RedirectToAction("Index");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> UpdatePassword(UpdatePasswordVM updatePasswordVM)
-        {
             return RedirectToAction("Index");
         }
     }
