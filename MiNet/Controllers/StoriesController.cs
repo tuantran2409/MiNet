@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using MiNet.Data;
+using MiNet.Controllers.Base;
 using MiNet.Data.Helpers.Enums;
 using MiNet.Data.Models;
 using MiNet.Data.Services;
@@ -11,7 +10,7 @@ using MiNet.ViewModels.Stories;
 namespace MiNet.Controllers
 {
     [Authorize]
-    public class StoriesController : Controller
+    public class StoriesController : BaseController
     {
         private readonly IStoriesService _storiesService;
         private readonly IFilesService _filesService;
@@ -26,7 +25,8 @@ namespace MiNet.Controllers
         public async Task<IActionResult> CreateStory(StoryVM storyVM)
         {
             //get the loggedin User Id
-            int loggedInUserId = 1;
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return RedirectToLogin();
 
             //Check and save the img url
             var imageUploadPath = await _filesService.UploadImageAsync(storyVM.Image, ImageFileType.StoryImage);
@@ -36,7 +36,7 @@ namespace MiNet.Controllers
                 DateCreated = DateTime.Now,
                 IsDeleted = false,
                 ImageUrl = imageUploadPath,
-                UserId = loggedInUserId
+                UserId = loggedInUserId.Value
             };
 
 

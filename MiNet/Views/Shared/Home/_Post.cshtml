@@ -1,6 +1,9 @@
-﻿@model Post
+﻿@using System.Security.Claims;
+@model Post
 
 @{
+    int loggedInUserId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int result) ? result : 0;
+
     TimeSpan timeSpanSincePosted = DateTime.Now - Model.DateCreated;
 
     string displayTime = timeSpanSincePosted switch
@@ -13,10 +16,10 @@
         _ => "Just now"
     };
 
-    bool isFavorited = Model.Favorites.Any(n => n.UserId == 1);
-    bool isLike = Model.Likes.Any(n => n.UserId == 1);
-    bool isPrivate = Model.IsPrivate == true && Model.UserId == 1;
-    bool isReported = Model.Reports.Any(n => n.UserId == 1);
+    bool isFavorited = Model.Favorites.Any(n => n.UserId == loggedInUserId);
+    bool isLiked = Model.Likes.Any(n => n.UserId == loggedInUserId);
+    bool isPrivate = Model.IsPrivate == true && Model.UserId == loggedInUserId;
+    bool isReported = Model.Reports.Any(n => n.UserId == loggedInUserId);
 
     string defaultUserPicture = "~/images/avatar/user.png";
 
@@ -40,7 +43,7 @@
             <button type="button" class="button-icon w-8 h-8"> <ion-icon class="text-xl" name="ellipsis-horizontal"></ion-icon> </button>
             <div class="w-[245px] post-options-dropdown" uk-dropdown="pos: bottom-right; animation: uk-animation-scale-up uk-transform-origin-top-right; animate-out: true; mode: click">
 
-                @if (Model.UserId == 1)
+                @if (Model.UserId == loggedInUserId)
                 {
                     <form asp-controller="Home" asp-action="TogglePostVisibility">
                         <input type="hidden" name="postId" value="@Model.Id" />
@@ -92,8 +95,8 @@
         <div class="flex items-center gap-2.5">
             <form asp-controller="Home" asp-action="TogglePostLike">
                 <input type="hidden" name="postId" value="@Model.Id"/>
-                <button type="submit" class="button-icon @(isLike ? "text-red-500 bg-red-100" : "")">
-                    <ion-icon class="text-lg" name="@(isLike ? "heart" : "heart-outline")"></ion-icon>
+                <button type="submit" class="button-icon @(isLiked ? "text-red-500 bg-red-100" : "")">
+                    <ion-icon class="text-lg" name="@(isLiked ? "heart" : "heart-outline")"></ion-icon>
                 </button>
             </form>
             

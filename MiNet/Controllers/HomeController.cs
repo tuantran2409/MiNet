@@ -1,9 +1,6 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using MiNet.Data;
-using MiNet.Data.Helpers;
+using MiNet.Controllers.Base;
 using MiNet.Data.Helpers.Enums;
 using MiNet.Data.Models;
 using MiNet.ViewModels.Home;
@@ -12,21 +9,19 @@ using MiNet.Data.Services;
 namespace MiNet.Controllers
 {
     [Authorize]
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly AppDbContext _context;
         private readonly IPostsService _postsService;
         private readonly IHashtagsService _hashtagsService;
         private readonly IFilesService _filesService;
 
-        public HomeController(ILogger<HomeController> logger, AppDbContext context, 
+        public HomeController(ILogger<HomeController> logger,
             IPostsService postsService,
             IHashtagsService hashtagsService,
             IFilesService filesService)
         {
             _logger = logger;
-            _context = context;
             _postsService = postsService;
             _hashtagsService = hashtagsService;
             _filesService = filesService;
@@ -35,9 +30,10 @@ namespace MiNet.Controllers
         public async Task<IActionResult> Index()
         {
             //get the loggedin User Id
-            int loggedInUserId = 1;
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return RedirectToLogin();
 
-            var allPosts = await _postsService.GetAllPostsAsync(loggedInUserId);
+            var allPosts = await _postsService.GetAllPostsAsync(loggedInUserId.Value);
 
             return View(allPosts);
         }
@@ -52,7 +48,8 @@ namespace MiNet.Controllers
         public async Task<IActionResult> CreatePost(PostVM post) 
         {
             //get the logged in user
-            int loggedInUser = 1;
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return RedirectToLogin();
 
             //get the upload img url
             var imageUploadPath = await _filesService.UploadImageAsync(post.Image,ImageFileType.PostImage);
@@ -65,7 +62,7 @@ namespace MiNet.Controllers
                 DateUpdate = DateTime.Now,
                 ImageUrl = imageUploadPath,
                 NrOfReports = 0,
-                UserId = loggedInUser
+                UserId = loggedInUserId.Value
             };
 
             //add the post to the database
@@ -82,9 +79,10 @@ namespace MiNet.Controllers
         public async Task<IActionResult> TogglePostLike(PostLikeVM postLikeVM)
         {
             //get the loggedIn user id
-            int loggedInUserId = 1;
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return RedirectToLogin();
 
-            await _postsService.TogglePostLikeAsync(postLikeVM.PostId, loggedInUserId);
+            await _postsService.TogglePostLikeAsync(postLikeVM.PostId, loggedInUserId.Value);
 
             return RedirectToAction("Index");
         }
@@ -93,9 +91,10 @@ namespace MiNet.Controllers
         public async Task<IActionResult> TogglePostFavorite(PostFavoriteVM postFavoriteVM)
         {
             //get the logged in user
-            int loggedInUserId = 1;
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return RedirectToLogin();
 
-            await _postsService.TogglePostFavoriteAsync(postFavoriteVM.PostId, loggedInUserId);
+            await _postsService.TogglePostFavoriteAsync(postFavoriteVM.PostId, loggedInUserId.Value);
 
             return RedirectToAction("Index");
         }
@@ -104,10 +103,11 @@ namespace MiNet.Controllers
         public async Task<IActionResult> TogglePostVisibility(PostVisibilityVM postVisibilityVM)
         {
             //get the logged in user
-            int loggedInUserId = 1;
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return RedirectToLogin();
 
-            await _postsService.TogglePostVisibilityAsync(postVisibilityVM.PostId, loggedInUserId);
-            
+            await _postsService.TogglePostVisibilityAsync(postVisibilityVM.PostId, loggedInUserId.Value);
+
             return RedirectToAction("Index");
         }
 
@@ -115,12 +115,13 @@ namespace MiNet.Controllers
         public async Task<IActionResult> AddPostComment(PostCommentVM postCommentVM) 
         {
             //get the logged in user
-            int loggedInUserId = 1;
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return RedirectToLogin();
 
             //create a comment object
-           var newComment = new Comment()
+            var newComment = new Comment()
             {
-                UserId = loggedInUserId,
+                UserId = loggedInUserId.Value,
                 PostId = postCommentVM.PostId,
                 Content = postCommentVM.Content,
                 DateCreated = DateTime.Now,
@@ -135,9 +136,10 @@ namespace MiNet.Controllers
         [HttpPost]
         public async Task<IActionResult> AddPostReport(PostReportVM postReportVM)
         {
-            int loggedInUserId = 1;
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return RedirectToLogin();
 
-            await _postsService.ReportPostAsync(postReportVM.PostId, loggedInUserId);
+            await _postsService.ReportPostAsync(postReportVM.PostId, loggedInUserId.Value);
 
             return RedirectToAction("Index");
         }
