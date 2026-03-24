@@ -1,6 +1,9 @@
-﻿@model Post
+﻿@using System.Security.Claims;
+@model Post
 
 @{
+    int loggedInUserId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int result) ? result : 0;
+
     TimeSpan timeSpanSincePosted = DateTime.Now - Model.DateCreated;
 
     string displayTime = timeSpanSincePosted switch
@@ -13,17 +16,21 @@
         _ => "Just now"
     };
 
-    bool isFavorited = Model.Favorites.Any(n => n.UserId == 1);
-    bool isLike = Model.Likes.Any(n => n.UserId == 1);
-    bool isPrivate = Model.IsPrivate == true && Model.UserId == 1;
-    bool isReported = Model.Reports.Any(n => n.UserId == 1);
+    bool isFavorited = Model.Favorites.Any(n => n.UserId == loggedInUserId);
+    bool isLiked = Model.Likes.Any(n => n.UserId == loggedInUserId);
+    bool isPrivate = Model.IsPrivate == true && Model.UserId == loggedInUserId;
+    bool isReported = Model.Reports.Any(n => n.UserId == loggedInUserId);
+
+    string defaultUserPicture = "~/images/avatar/user.png";
+
+    bool showAllComments = ViewData["ShowAllComment"] as bool? ?? false;
 }
 
 <div class="bg-white rounded-xl shadow-sm text-sm font-medium border1">
     @* post heading *@
     <div class="flex gap-3 sm:p-4 p-2.5 text-sm font-medium">
         <a>
-            <img src="@(string.IsNullOrEmpty(Model.User.ProfilePictureUrl) ? "~/images/avatar/user.png" : Model.User.ProfilePictureUrl)" class="w-9 h-9 rounded-full" />
+            <img src="@(!string.IsNullOrEmpty(Model.User.ProfilePictureUrl) ? Url.Content("~/"+Model.User.ProfilePictureUrl) : defaultUserPicture)" class="w-9 h-9 rounded-full" />
         </a>
         <div class="flex-1">
             <a>
@@ -36,7 +43,7 @@
             <button type="button" class="button-icon w-8 h-8"> <ion-icon class="text-xl" name="ellipsis-horizontal"></ion-icon> </button>
             <div class="w-[245px] post-options-dropdown" uk-dropdown="pos: bottom-right; animation: uk-animation-scale-up uk-transform-origin-top-right; animate-out: true; mode: click">
 
-                @if (Model.UserId == 1)
+                @if (Model.UserId == loggedInUserId)
                 {
                     <form asp-controller="Home" asp-action="TogglePostVisibility">
                         <input type="hidden" name="postId" value="@Model.Id" />
@@ -74,9 +81,9 @@
     </a>
     @if (!string.IsNullOrEmpty(Model.ImageUrl))
     {
-        <a>
-            <div class="relative w-full lg:h-96 h-full sm:px-4">
-                <img src="@Model.ImageUrl" class="sm:rounded-lg w-full h-full object-cover" />
+        <a asp-controller="Home" asp-action="Details" asp-route-postId="@Model.Id">
+            <div class="relative w-full h-full">
+                <img src="@Url.Content("~/" + Model.ImageUrl)" class="sm:rounded-lg w-full h-full object-cover" />
             </div>   
         </a>
     }
@@ -88,8 +95,8 @@
         <div class="flex items-center gap-2.5">
             <form asp-controller="Home" asp-action="TogglePostLike">
                 <input type="hidden" name="postId" value="@Model.Id"/>
-                <button type="submit" class="button-icon @(isLike ? "text-red-500 bg-red-100" : "")">
-                    <ion-icon class="text-lg" name="@(isLike ? "heart" : "heart-outline")"></ion-icon>
+                <button type="submit" class="button-icon @(isLiked ? "text-red-500 bg-red-100" : "")">
+                    <ion-icon class="text-lg" name="@(isLiked ? "heart" : "heart-outline")"></ion-icon>
                 </button>
             </form>
             
@@ -124,9 +131,11 @@
     @* comment section *@
     <div>
         <div class="p-2.5 border-t border-gray-100 font-normal space-y-3 relative">
-            @foreach(var comment in Model.Comments.OrderByDescending(n => n.DateCreated).Take(3))
+            @foreach (var comment in showAllComments
+                            ? Model.Comments.OrderByDescending(n => n.DateCreated)
+                            : Model.Comments.OrderByDescending(n => n.DateCreated).Take(2))
             {
-                TimeSpan commentTimeSpanSincePosted = DateTime.Now - Model.DateCreated;
+                TimeSpan commentTimeSpanSincePosted = DateTime.Now - comment.DateCreated;
 
                 string commentDisplayTime = commentTimeSpanSincePosted switch
                 {
@@ -139,7 +148,7 @@
                 };
                 <div class="flex items-start gap-3 relative">
                     <a>
-                        <img src="@(string.IsNullOrEmpty(Model.User.ProfilePictureUrl) ? "~/images/avatar/user.png" : Model.User.ProfilePictureUrl)" class="w-6 h-6 mt-1 rounded-full" />
+                        <img src="@(!string.IsNullOrEmpty(comment.User.ProfilePictureUrl) ? Url.Content("~/" + comment.User.ProfilePictureUrl) : defaultUserPicture)" class="w-6 h-6 mt-1 rounded-full" />
                     </a>
                     <div class="flex-1">
                         <div class="flex justify-content-between">
@@ -164,10 +173,10 @@
                 </div>
             }
 
-            @if(Model.Comments.Count >= 3)
+            @if(Model.Comments.Count >= 3 && !showAllComments)
             {
                 <div class="p-1.5">
-                    <a>
+                    <a asp-controller="Home" asp-action="Details" asp-route-postId="@Model.Id">
                         Show all comments
                     </a>
                 </div>
