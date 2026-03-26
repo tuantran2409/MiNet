@@ -365,3 +365,4 @@ FodyWeavers.xsd
 # Custom Auth Secrets
 appsettings.Development.json
 /MiNet/appsettings.Development.json
+/MiNet/wwwroot/images/profilePictures
