@@ -1,21 +1,25 @@
 ﻿using MiNet.Data.Models;
+using MiNet.Data.Dtos;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace MiNet.Data.Services
 {
     public class PostsService : IPostsService
     {
         private readonly AppDbContext _context;
+        private readonly INotificationsService _notificationService;
 
-        public PostsService(AppDbContext context)
+        public PostsService(AppDbContext context, INotificationsService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<List<Post>> GetAllPostsAsync(int loggedInUserId)
@@ -116,8 +120,14 @@ namespace MiNet.Data.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task TogglePostLikeAsync(int postId, int userId)
+        public async Task<GetNotificationDto> TogglePostLikeAsync(int postId, int userId)
         {
+            var response = new GetNotificationDto()
+            {
+                Success = true,
+                SendNotification = false
+            };
+
             var like = await _context.Likes
                 .Where(l => l.PostId == postId && l.UserId == userId)
                 .FirstOrDefaultAsync();
@@ -136,11 +146,21 @@ namespace MiNet.Data.Services
                 };
                 await _context.AddAsync(newLike);
                 await _context.SaveChangesAsync();
+
+                response.SendNotification = true;
             }
+
+            return response;
         }
 
-        public async Task TogglePostFavoriteAsync(int postId, int userId)
+        public async Task<GetNotificationDto> TogglePostFavoriteAsync(int postId, int userId)
         {
+            var response = new GetNotificationDto()
+            {
+                Success = true,
+                SendNotification = false
+            };
+
             var favorite = await _context.Favorites
                 .Where(f => f.PostId == postId && f.UserId == userId)
                 .FirstOrDefaultAsync();
@@ -160,7 +180,10 @@ namespace MiNet.Data.Services
                 };
                 await _context.AddAsync(newFavorite);
                 await _context.SaveChangesAsync();
+
+                response.SendNotification = true;
             }
+            return response;
         }
 
         public async Task TogglePostVisibilityAsync(int postId, int userId)

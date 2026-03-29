@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Custom Auth Secrets
+appsettings.Development.json
+/MiNet/appsettings.Development.json
+/MiNet/wwwroot/images/profilePictures
+/MiNet/wwwroot/images/avatars
+/MiNet/wwwroot/images/stories
+/MiNet/wwwroot/images/posts
