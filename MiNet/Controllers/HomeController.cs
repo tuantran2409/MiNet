@@ -10,7 +10,7 @@ using MiNet.Data.Services;
 
 namespace MiNet.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = AppRoles.User)]
     public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;

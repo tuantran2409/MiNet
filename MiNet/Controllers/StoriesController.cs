@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MiNet.Controllers.Base;
+using MiNet.Data.Helpers.Constants;
 using MiNet.Data.Helpers.Enums;
 using MiNet.Data.Models;
 using MiNet.Data.Services;
@@ -9,7 +10,7 @@ using MiNet.ViewModels.Stories;
 
 namespace MiNet.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = AppRoles.User)]
     public class StoriesController : BaseController
     {
         private readonly IStoriesService _storiesService;

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using MiNet.Controllers.Base;
 using MiNet.Data.Helpers.Constants;
 using MiNet.Data.Services;
@@ -6,6 +7,7 @@ using MiNet.ViewModels.Friends;
 
 namespace MiNet.Controllers
 {
+    [Authorize(Roles = AppRoles.User)]
     public class FriendsController : BaseController
     {
         public readonly IFriendsService _friendsService;

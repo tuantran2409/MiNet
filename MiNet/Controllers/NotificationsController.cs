@@ -1,10 +1,13 @@
 ﻿using MiNet.Controllers.Base;
 using MiNet.Data.Models;
+using MiNet.Data.Helpers.Constants;
 using MiNet.Data.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MiNet.Controllers
 {
+    [Authorize(Roles = AppRoles.User)]
     public class NotificationsController : BaseController
     {
         private readonly INotificationsService _notificationsService;
