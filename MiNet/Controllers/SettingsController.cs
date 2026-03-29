@@ -1,6 +1,7 @@
 ﻿using MiNet.Controllers.Base;
 using MiNet.Data.Models;
 using MiNet.Data.Services;
+using MiNet.Data.Helpers.Constants;
 using MiNet.ViewModels.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ using System.Security.Claims;
 
 namespace MiNet.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = $"{AppRoles.User},{AppRoles.Admin}")]
     public class SettingsController : BaseController
     {
         private readonly IUsersService _usersService;

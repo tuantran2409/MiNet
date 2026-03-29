@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using MiNet.Controllers.Base;
 using MiNet.ViewModels.Users;
+using MiNet.Data.Helpers.Constants;
 using MiNet.Data.Services;
 using MiNet.Data.Models;
 
 namespace MiNet.Controllers
 {
+    [Authorize(Roles = AppRoles.User)]
     public class UsersController : BaseController
     {
         private readonly IUsersService _userService;
