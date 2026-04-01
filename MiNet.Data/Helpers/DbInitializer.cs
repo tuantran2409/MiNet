@@ -1,4 +1,4 @@
-﻿using MiNet.Data.Models;
+using MiNet.Data.Models;
 using MiNet.Migrations;
 using MiNet.Data.Helpers.Constants;
 using Microsoft.AspNetCore.Identity;
@@ -34,9 +34,9 @@ namespace MiNet.Data.Helpers
                 var newUser = new User()
                 {
                     UserName = "Tuan.Tran",
-                    Email = "tranhunganhtuan2409@gmail.com",
-                    Name = "Tran Hung Anh Tuan",
-                    ProfilePictureUrl = "https://yt3.ggpht.com/wYT1U9NoL8gttISEdKuIA9cVAWlz9Rm2CbEqVPmYbtzUU0twh6KAL_e5jyUvK4nTiQSFO1tGMw=s600-c-k-c0x00ffffff-no-rj-rp-mo",
+                    Email = "user@gmail.com",
+                    Name = "User",
+                    ProfilePictureUrl = "/images/avatar/user.png",
                     EmailConfirmed = true
                 };
 
@@ -49,8 +49,8 @@ namespace MiNet.Data.Helpers
                 {
                     UserName = "admin.admin",
                     Email = "admin@gmail.com",
-                    Name = "Tuan Admin",
-                    ProfilePictureUrl = "https://yt3.ggpht.com/wYT1U9NoL8gttISEdKuIA9cVAWlz9Rm2CbEqVPmYbtzUU0twh6KAL_e5jyUvK4nTiQSFO1tGMw=s600-c-k-c0x00ffffff-no-rj-rp-mo",
+                    Name = "Admin",
+                    ProfilePictureUrl = "/images/avatar/user.png",
                     EmailConfirmed = true
                 };
 

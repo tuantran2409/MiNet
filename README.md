@@ -17,7 +17,22 @@ MiNet is a modern social networking platform built with **ASP.NET Core MVC** and
 - **Frontend**: HTML5, CSS3, JavaScript (SignalR Client)
 - **Auth**: ASP.NET Core Identity, OAuth 2.0 (Google, GitHub)
 
-## ⚙️ Setup Instructions
+## ⚡ Quick Start (Out-of-the-box)
+
+If you have **Visual Studio** or the **.NET 9.0 SDK** installed with **SQL Server LocalDB**, you can run MiNet immediately:
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/tuantran2409/MiNet.git
+   cd MiNet
+   ```
+2. **Run the Project**:
+   ```bash
+   dotnet run --project MiNet
+   ```
+   *The database will be automatically created and seeded with sample data on the first run.*
+
+## ⚙️ Detailed Setup Instructions
 
 ### Prerequisites
 
@@ -37,7 +52,7 @@ MiNet is a modern social networking platform built with **ASP.NET Core MVC** and
    Update the `DefaultConnection` in `MiNet/appsettings.json` with your connection string.
    ```json
    "ConnectionStrings": {
-     "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=MiNetDB;Trusted_Connection=True;MultipleActiveResultSets=true"
+     "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=MiNet;Trusted_Connection=True;MultipleActiveResultSets=true"
    }
    ```
 
@@ -55,6 +70,15 @@ MiNet is a modern social networking platform built with **ASP.NET Core MVC** and
 
 - **MiNet/**: The main Web Application project (MVC).
 - **MiNet.Data/**: The Data Access layer (Models, DbContext, Services).
+
+### 🔑 Default Credentials
+
+Once the application is running, you can log in with these test accounts:
+
+| Role | Username (Email) | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin@gmail.com` | `Coding@1234?` |
+| **User** | `user@gmail.com` | `Coding@1234?` |
 
 ---
 *Developed with ❤️ by [tuantran2409](https://github.com/tuantran2409)*
