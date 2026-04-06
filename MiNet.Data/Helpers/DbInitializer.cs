@@ -1,5 +1,4 @@
 using MiNet.Data.Models;
-using MiNet.Migrations;
 using MiNet.Data.Helpers.Constants;
 using Microsoft.AspNetCore.Identity;
 using System;

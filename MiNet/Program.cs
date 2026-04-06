@@ -7,7 +7,9 @@ using MiNet.Data;
 using MiNet.Data.Models;
 using MiNet.Data.Helpers;
 using MiNet.Data.Services;
+using MiNet.Hubs;
 using MiNet.Data.Hubs;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -26,6 +28,7 @@ builder.Services.AddScoped<IFilesService, FilesService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IFriendsService, FriendsService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IChatService, ChatService>(); 
 
 //Identity configuration
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
@@ -66,7 +69,7 @@ builder.Services.AddSignalR(); // Register SignalR services
 var app = builder.Build();
 
 //Seed the Database with initial data
-using(var scope = app.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await dbContext.Database.MigrateAsync();
@@ -93,5 +96,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<ChatHub>("/chathub");  
 
 app.Run();

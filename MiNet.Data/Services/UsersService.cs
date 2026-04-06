@@ -1,5 +1,6 @@
-﻿using MiNet.Data.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using MiNet.Data.Helpers.Enums;  
+using MiNet.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,6 +47,21 @@ namespace MiNet.Data.Services
                 .ToListAsync();
 
             return allPosts;
+        }
+
+       
+        public async Task<List<User>> GetFriendsAsync(int userId)
+        {
+            
+            var friendships = await _appDbContext.Friendships
+                .Where(f => (f.SenderId == userId || f.ReceiverId == userId) && f.Status == FriendshipStatus.Accepted)
+                .ToListAsync();
+
+            var friendIds = friendships.Select(f => f.SenderId == userId ? f.ReceiverId : f.SenderId).ToList();
+
+            return await _appDbContext.Users
+                .Where(u => friendIds.Contains(u.Id))
+                .ToListAsync();
         }
     }
 }

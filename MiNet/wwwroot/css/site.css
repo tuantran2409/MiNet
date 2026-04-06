@@ -8,7 +8,7 @@ body {
     margin-bottom: 60px;
 }
 
-form > button.icon-link, button.delete-post-btn{
+form > button.icon-link, button.delete-post-btn {
     padding: 8px 10px;
     display: flex; /* Enables flexbox */
     align-items: center; /* Vertically centers the content */
@@ -20,6 +20,711 @@ form > button.icon-link, button.delete-post-btn{
     /* Add any additional button styling here */
 }
 
-    form > button.icon-link > ion-icon, button.delete-post-btn > ion-icon{
+    form > button.icon-link > ion-icon, button.delete-post-btn > ion-icon {
         margin-right: 8px; /* Adds space between the icon and text */
     }
+
+html {
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+    background-color: #f0f2f5 !important; /* Nền xám nhạt */
+}
+
+/* Style cho nút bấm giữ nguyên */
+form > button.icon-link, button.delete-post-btn {
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+}
+
+    form > button.icon-link > ion-icon, button.delete-post-btn > ion-icon {
+        margin-right: 8px;
+    }
+
+/* ========== CARD BÀI VIẾT - NỀN TRẮNG ========== */
+.card, .post-card, .comment-card {
+    background-color: #ffffff !important;
+    border: 1px solid #ddd !important;
+    border-radius: 10px !important;
+}
+
+/* ========== NỀN FEED ========== */
+.feed-container,
+.post-container,
+.main-content,
+.container {
+    background-color: #f0f2f5 !important;
+}
+
+/* ========== SỬA MÀU CHỮ BÌNH LUẬN ========== */
+.comment-content,
+.comment-text,
+.comment-body,
+.comment-message,
+.card-text,
+.post-comment,
+.comment p,
+.comment span,
+.comment div,
+.comment-item {
+    color: #000000 !important;
+}
+
+/* Tên người dùng */
+.user-name,
+.username,
+.comment-author {
+    color: #000000 !important;
+    font-weight: 500;
+}
+
+/* Nội dung bài viết */
+.card p,
+.card span,
+.post-card p,
+.post-card span,
+.post-content {
+    color: #1a1a1a !important;
+}
+
+/* ========== SỬA INPUT/ TEXTAREA ========== */
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+.form-control {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cccccc !important;
+}
+
+    /* Placeholder */
+    ::placeholder,
+    input::placeholder,
+    textarea::placeholder {
+        color: #888888 !important;
+        opacity: 1;
+    }
+
+    /* Khi focus vào input */
+    input:focus, textarea:focus {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        outline: none;
+        border-color: #007bff !important;
+    }
+
+/* ========== SIDEBAR ========== */
+.sidebar,
+.nav-sidebar {
+    background-color: #ffffff !important;
+    border-right: 1px solid #ddd !important;
+}
+
+    .sidebar a,
+    .nav-sidebar a {
+        color: #1a1a1a !important;
+    }
+
+        .sidebar a:hover {
+            background-color: #e9ecef !important;
+        }
+
+/* ========== HEADER/NAVBAR ========== */
+.navbar,
+.header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #ddd !important;
+}
+
+/* ========== LINK MÀU XANH ========== */
+a, a * {
+    color: #0066cc !important;
+}
+
+    a:hover {
+        color: #004499 !important;
+    }
+
+/* ========== NÚT BẤM ========== */
+button, .btn {
+    color: #ffffff !important;
+}
+
+    button:hover, .btn:hover {
+        color: #ffffff !important;
+    }
+
+/* ========== PEOPLE YOU MAY KNOW, TRENDS ========== */
+.sidebar-widget,
+.recommendations {
+    background-color: #ffffff !important;
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important;
+}
+
+/* ========== TEXT MÀU XÁM (thời gian, ...) ========== */
+.text-muted,
+.time-ago,
+.post-date,
+small {
+    color: #6c757d !important;
+}
+
+/* ========== TÌM KIẾM ========== */
+.search-bar input,
+input[type="search"] {
+    background-color: #f0f2f5 !important;
+    color: #1a1a1a !important;
+    border: 1px solid #ddd !important;
+}
+
+/* ========== FIX AUTO FILL TRÌNH DUYỆT ========== */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #000000 !important;
+    -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+}
+
+/* === ÉP MÀU CHO TOÀN BỘ TRANG === */
+html, body, body * {
+    color: #000000 !important;
+}
+
+/* NGOẠI TRỪ: giữ màu trắng cho nút bấm */
+button, .btn, button *, .btn * {
+    color: #ffffff !important;
+}
+
+/* NGOẠI TRỪ: giữ màu xanh cho link */
+a, a * {
+    color: #0066cc !important;
+}
+
+/* Đảm bảo input có nền trắng chữ đen */
+input, textarea, select, .form-control {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #ccc !important;
+}
+
+/* Placeholder màu xám nhạt */
+::placeholder {
+    color: #888888 !important;
+}
+
+
+/* ========== HIỂN THỊ NÚT XÓA BÌNH LUẬN MÀU ĐỎ ========== */
+button.delete-comment-btn,
+button.delete-comment,
+button[onclick*="Delete"],
+button[onclick*="delete"],
+button[onclick*="xóa"],
+form button[type="submit"],
+.comment button,
+.comment-item button,
+.comment-actions button {
+    color: #ff0000 !important;
+    background-color: transparent !important;
+    border: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+}
+
+    button.delete-comment-btn:hover,
+    button.delete-comment:hover,
+    .comment button:hover {
+        color: #cc0000 !important;
+        text-decoration: underline !important;
+    }
+
+/* Icon thùng rác */
+ion-icon[name="trash"],
+ion-icon[name="trash-outline"] {
+    color: #ff0000 !important;
+    font-size: 16px !important;
+}
+
+    ion-icon[name="trash"]:hover,
+    ion-icon[name="trash-outline"]:hover {
+        color: #cc0000 !important;
+    }
+
+/* ========== ÉP MÀU CHAT - CỰC MẠNH ========== */
+.chat-container *,
+.message-container *,
+.conversation-container *,
+[class*="chat"] *,
+[class*="message"] *,
+[id*="chat"] *,
+[id*="message"] * {
+    color: #000000 !important;
+}
+
+/* Ngoại trừ link trong chat */
+.chat-container a,
+[class*="chat"] a {
+    color: #0066cc !important;
+}
+
+/* Ngoại trừ nút bấm trong chat */
+.chat-container button,
+[class*="chat"] button {
+    color: #ffffff !important;
+    background-color: #007bff !important;
+}
+
+/* ========== ÉP TẤT CẢ INPUT TRONG CHAT ========== */
+.chat-container input,
+.chat-container textarea,
+.conversation-container input,
+.conversation-container textarea,
+[class*="chat"] input,
+[class*="chat"] textarea,
+[class*="message"] input,
+[class*="message"] textarea {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+    -webkit-text-fill-color: #000000 !important; /* Fix cho trình duyệt Webkit */
+}
+
+    .chat-container input:focus,
+    .chat-container textarea:focus {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+
+/* ========== FIX ĐĂNG NHẬP - HIỆN CHỮ NGAY KHI GÕ ========== */
+
+/* Toàn bộ input trong form đăng nhập */
+form input[type="email"],
+form input[type="password"],
+form input[type="text"],
+.login-form input,
+.login-page input,
+.account-form input {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    padding: 10px !important;
+    border-radius: 4px !important;
+    -webkit-text-fill-color: #000000 !important; /* QUAN TRỌNG: fix trình duyệt Webkit */
+}
+
+    /* Khi đang gõ (focus) */
+    form input[type="email"]:focus,
+    form input[type="password"]:focus,
+    .login-form input:focus {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        outline: none !important;
+        border-color: #007bff !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+
+/* Label (Email address, Password) */
+form label,
+.login-form label {
+    color: #000000 !important;
+    font-weight: 500 !important;
+    margin-bottom: 5px !important;
+    display: block !important;
+}
+
+/* Placeholder */
+form input::placeholder,
+.login-form input::placeholder {
+    color: #888888 !important;
+    opacity: 1 !important;
+}
+
+/* Checkbox Remember me */
+form input[type="checkbox"] {
+    width: auto !important;
+    margin-right: 5px !important;
+}
+
+/* Link Register, Forgot password */
+form a {
+    color: #0066cc !important;
+}
+
+/* Nút Sign In */
+form button[type="submit"],
+form .btn-primary {
+    background-color: #007bff !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+}
+
+    form button[type="submit"]:hover {
+        background-color: #0069d9 !important;
+    }
+
+/* ========== FIX THANH TÌM KIẾM ========== */
+
+/* Khung tìm kiếm */
+.search-bar,
+.search-container,
+.header-search {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+}
+
+    /* Ô input tìm kiếm */
+    .search-bar input,
+    .search-container input,
+    input[type="search"] {
+        width: 300px !important;
+        padding: 8px 15px !important;
+        border-radius: 20px !important;
+        border: 1px solid #ddd !important;
+        background-color: #f0f2f5 !important;
+        color: #1a1a1a !important;
+    }
+
+/* Kết quả tìm kiếm */
+.search-results {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important;
+    z-index: 1000 !important;
+}
+
+/* ========== FIX ICON TIM (LIKE) ========== */
+
+/* Nút like (trái tim) */
+.like-btn,
+.like-button,
+button[aria-label="Like"],
+button[aria-label="Unlike"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+    /* Icon trái tim */
+    .like-btn ion-icon,
+    .like-button ion-icon,
+    ion-icon[name="heart"],
+    ion-icon[name="heart-outline"] {
+        font-size: 24px !important;
+        color: #ff0000 !important;
+        transition: transform 0.2s !important;
+    }
+
+    .like-btn:hover ion-icon {
+        transform: scale(1.1) !important;
+    }
+
+/* Trái tim đã thả (màu đỏ đậm) */
+.liked ion-icon,
+ion-icon[name="heart"] {
+    color: #ff0000 !important;
+}
+
+/* Trái tim chưa thả (màu xám) */
+ion-icon[name="heart-outline"] {
+    color: #6c757d !important;
+}
+
+/* Số lượng like */
+.like-count {
+    color: #1a1a1a !important;
+    font-size: 13px !important;
+    margin-left: 4px !important;
+}
+
+/* Fix vị trí thanh tìm kiếm */
+.navbar .search-bar,
+.top-bar .search-container {
+    order: 2 !important;
+    flex: 1 !important;
+    display: flex !important;
+    justify-content: center !important;
+}
+
+/* Đưa thanh tìm kiếm về giữa header */
+header .search-bar {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Đảm bảo icon hiển thị đúng */
+ion-icon {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Fix size icon */
+.like-btn ion-icon {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* ========== FIX LẠI TOÀN BỘ BỐ CỤC ========== */
+
+/* Header chứa thanh tìm kiếm */
+header,
+.navbar,
+.top-nav {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 20px !important;
+}
+
+/* Thanh tìm kiếm */
+.search-bar,
+.search-box,
+[class*="search"] {
+    order: 1 !important;
+    margin: 0 auto !important;
+    width: 300px !important;
+}
+
+/* Logo/Menu bên trái */
+.logo,
+.menu-left {
+    order: 0 !important;
+}
+
+/* User menu bên phải */
+.user-menu,
+.profile-menu {
+    order: 2 !important;
+}
+
+/* ========== BẢO VỆ ICON TRÁI TIM KHÔNG BỊ ẢNH HƯỞNG ========== */
+
+/* Ưu tiên cho icon trái tim - ghi đè mọi thứ */
+.like-btn ion-icon,
+.like-button ion-icon,
+ion-icon[name="heart"],
+ion-icon[name="heart-outline"],
+[class*="like"] ion-icon {
+    color: #ff0000 !important;
+    font-size: 24px !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Trái tim chưa like */
+ion-icon[name="heart-outline"] {
+    color: #6c757d !important;
+}
+
+/* Trái tim đã like */
+ion-icon[name="heart"],
+.liked ion-icon {
+    color: #ff0000 !important;
+}
+
+/* Khôi phục màu cho button like */
+button.like-btn,
+button.like-button {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Ngăn CSS chat ảnh hưởng đến like */
+.chat-container .like-btn,
+.chat-container .like-button,
+.chat-container ion-icon[name="heart"],
+.chat-container ion-icon[name="heart-outline"] {
+    color: inherit !important;
+}
+
+/* Đảm bảo like button không bị ảnh hưởng bởi CSS chat */
+.like-btn,
+.like-button {
+    all: revert !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    cursor: pointer !important;
+}
+
+
+/* ========== CĂN CHỈNH LẠI THANH TÌM KIẾM - KHẨN CẤP ========== */
+
+/* Đặt lại vị trí thanh tìm kiếm */
+.search-bar {
+    position: relative !important;
+    float: none !important;
+    clear: both !important;
+    display: block !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+    width: 300px !important;
+}
+
+    /* Reset mọi thuộc tính position */
+    .search-bar form,
+    .search-bar input {
+        position: static !important;
+        left: auto !important;
+        right: auto !important;
+        top: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+    }
+
+/* Ép về đúng hàng */
+.navbar,
+.header,
+.top-bar {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+    /* Đưa thanh tìm kiếm vào giữa */
+    .navbar .search-bar {
+        order: 1 !important;
+        flex: 0 1 auto !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Logo bên trái */
+    .navbar .logo,
+    .navbar .brand {
+        order: 0 !important;
+    }
+
+    /* Menu bên phải */
+    .navbar .user-menu,
+    .navbar .nav-links {
+        order: 2 !important;
+    }
+
+/* Ẩn overflow nếu bị tràn */
+body {
+    overflow-x: hidden !important;
+}
+
+/* Reset hoàn toàn thanh tìm kiếm */
+.search-bar {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    float: none !important;
+    clear: both !important;
+    display: block !important;
+    text-align: center !important;
+    width: 350px !important;
+    margin: 0 auto !important;
+}
+
+/* ========== FIX THANH TÌM KIẾM BỊ ĐÈ ========== */
+
+/* Đảm bảo thanh tìm kiếm có vị trí đúng */
+.search-bar {
+    position: relative !important;
+    z-index: 10 !important;
+    margin: 10px auto !important;
+    display: block !important;
+    clear: both !important;
+}
+
+    /* Ẩn chữ "Search Posts, Friends..." trùng lặp nếu có */
+    .search-bar::before,
+    .search-bar::after,
+    .search-label,
+    .search-placeholder {
+        display: none !important;
+    }
+
+    /* Form tìm kiếm chiếm toàn bộ */
+    .search-bar form {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    /* Input tìm kiếm rõ ràng */
+    .search-bar input {
+        width: 100% !important;
+        padding: 10px 15px !important;
+        border-radius: 25px !important;
+        border: 1px solid #ccc !important;
+        background: #f0f2f5 !important;
+    }
+
+    /* Xóa margin/padding thừa */
+    .search-bar * {
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ========== ẨN THANH TÌM KIẾM (CHỈ ĐỂ CHỮ) ========== */
+
+    /* Ẩn toàn bộ ô input tìm kiếm */
+    .search-bar input,
+    .search-bar form,
+    .search-bar .search-input,
+    .search-bar .form-control {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+/* Nếu muốn ẩn hẳn cả khung tìm kiếm */
+.search-bar {
+    display: none !important;
+}
+
+    /* Hoặc chỉ giữ chữ "Search Posts, Friends..." như văn bản thường */
+    .search-bar::before {
+        content: "Search Posts, Friends..." !important;
+        display: block !important;
+        font-size: 14px !important;
+        color: #666 !important;
+        padding: 8px 12px !important;
+        background: #f0f2f5 !important;
+        border-radius: 20px !important;
+        text-align: center !important;
+    }
+
+/* Ép nút 3 chấm hiện màu đen */
+[class*="option"] ion-icon,
+[class*="menu"] ion-icon,
+[aria-label*="option"] ion-icon,
+[aria-label*="menu"] ion-icon {
+    color: #000000 !important;
+    background: #e9ecef !important;
+    border-radius: 50% !important;
+    padding: 5px !important;
+    font-size: 20px !important;
+}

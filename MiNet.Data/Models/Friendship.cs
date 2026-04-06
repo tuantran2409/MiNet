@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MiNet.Data.Helpers.Enums;  
 
 namespace MiNet.Data.Models
 {
@@ -16,5 +17,9 @@ namespace MiNet.Data.Models
 
         public int ReceiverId { get; set; }
         public virtual User Receiver { get; set; }
+
+       
+        public FriendshipStatus Status { get; set; } = FriendshipStatus.Pending;
     }
 }
+

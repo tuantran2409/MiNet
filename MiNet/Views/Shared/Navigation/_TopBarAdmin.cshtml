@@ -26,7 +26,7 @@
         </div>
     </div>
     <div class="flex-1 relative">
-        
+
 
         <div class="max-w-[1220px] mx-auto flex items-center">
             <div class="flex items-center sm:gap-4 gap-2 absolute right-5 top-1/2 -translate-y-1/2 text-black">
@@ -38,7 +38,7 @@
 
                     <a>
                         <div class="p-4 py-5 flex items-center gap-4">
-                            <img src="@(string.IsNullOrEmpty(profilePictureUrl) ? Url.Content("~/images/avatar/user.png") : Url.Content("~/" + profilePictureUrl))" " class="w-10 h-10 rounded-full shadow" />
+                            <img src="@(string.IsNullOrEmpty(profilePictureUrl) ? Url.Content("~/images/avatar/user.png") : Url.Content("~/" + profilePictureUrl))" class="w-10 h-10 rounded-full shadow" />
                             <div class="flex-1">
                                 <h4 class="text-sm font-medium text-black">@fullName</h4>
                                 <div class="text-sm mt-1 text-blue-600 font-light/70">@userName</div>
@@ -47,6 +47,13 @@
                     </a>
                     <hr />
                     <nav>
+                        <!-- THÊM MỤC CHAT VÀO ĐÂY -->
+                        <a asp-controller="Chat" asp-action="Index">
+                            <div class="flex items-center gap-2.5 hover:bg-secondery p-2 px-2.5 rounded-md">
+                                <ion-icon name="chatbubbles-outline" class="text-lg"></ion-icon> Chat
+                            </div>
+                        </a>
+                        <hr />
                         <a asp-controller="Settings" asp-action="Index">
                             <div class="flex items-center gap-2.5 hover:bg-secondery p-2 px-2.5 rounded-md">
                                 <ion-icon name="settings-outline" class="text-lg"></ion-icon> My Account

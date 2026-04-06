@@ -23,6 +23,7 @@ namespace MiNet.Data
         public DbSet<FriendRequest> FriendRequests { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
