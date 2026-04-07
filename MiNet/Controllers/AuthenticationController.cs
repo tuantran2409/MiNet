@@ -1,4 +1,4 @@
-﻿using MiNet.Data.Helpers.Constants;
+using MiNet.Data.Helpers.Constants;
 using MiNet.Data.Models;
 using MiNet.ViewModels.Authentication;
 using MiNet.ViewModels.Settings;
@@ -37,10 +37,43 @@ namespace MiNet.Controllers
         {
             if (!ModelState.IsValid)
                 return View(loginVM);
+
             var existingUser = await _userManager.FindByEmailAsync(loginVM.Email);
             if (existingUser == null)
             {
-                ModelState.AddModelError("", "Invalid email or password. Please, try again");
+                TempData["LoginError"] = "Incorrect email or password. Please try again.";
+                return View(loginVM);
+            }
+
+            // Check if the account has been suspended/deleted
+            if (existingUser.IsDeleted)
+            {
+                TempData["LoginError"] = "Your account has been suspended. Please contact support for assistance.";
+                return View(loginVM);
+            }
+
+            // Check if the account is locked out (before attempting sign-in)
+            if (await _userManager.IsLockedOutAsync(existingUser))
+            {
+                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(existingUser);
+                if (lockoutEnd.HasValue)
+                {
+                    // Admin-locked accounts have lockout far in the future (100 years)
+                    var timeUntilUnlock = lockoutEnd.Value - DateTimeOffset.UtcNow;
+                    if (timeUntilUnlock.TotalDays > 365)
+                    {
+                        // Admin locked
+                        TempData["LoginError"] = "Your account has been locked by an administrator. Please contact support for assistance.";
+                        TempData["LoginErrorType"] = "admin-locked";
+                    }
+                    else
+                    {
+                        // Auto-lockout from failed attempts
+                        TempData["LoginError"] = "Your account has been temporarily locked due to multiple failed login attempts.";
+                        TempData["LoginErrorType"] = "auto-locked";
+                        TempData["LockoutEnd"] = lockoutEnd.Value.ToUniversalTime().ToString("o");
+                    }
+                }
                 return View(loginVM);
             }
 
@@ -48,7 +81,7 @@ namespace MiNet.Controllers
             if (!existingUserClaims.Any(c => c.Type == CustomClaim.FullName))
                 await _userManager.AddClaimAsync(existingUser, new Claim(CustomClaim.FullName, existingUser.Name));
 
-            var result = await _signInManager.PasswordSignInAsync(existingUser.UserName, loginVM.Password, false, false);
+            var result = await _signInManager.PasswordSignInAsync(existingUser.UserName, loginVM.Password, false, true);
 
             if (result.Succeeded)
             {
@@ -56,9 +89,30 @@ namespace MiNet.Controllers
                     return RedirectToAction("Index", "Admin");
                 else
                     return RedirectToAction("Index", "Home");
-            };
+            }
 
-            ModelState.AddModelError("", "Invalid login attempt");
+            if (result.IsLockedOut)
+            {
+                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(existingUser);
+                TempData["LoginError"] = "Your account has been temporarily locked due to multiple failed login attempts.";
+                TempData["LoginErrorType"] = "auto-locked";
+                if (lockoutEnd.HasValue)
+                    TempData["LockoutEnd"] = lockoutEnd.Value.ToUniversalTime().ToString("o");
+                return View(loginVM);
+            }
+
+            if (result.IsNotAllowed)
+            {
+                TempData["LoginError"] = "Your account is not allowed to sign in. Please verify your email first.";
+                return View(loginVM);
+            }
+
+            // Wrong password — show remaining attempts
+            var failedCount = await _userManager.GetAccessFailedCountAsync(existingUser);
+            var maxAttempts = 5;
+            var attemptsLeft = maxAttempts - failedCount;
+            TempData["LoginError"] = "Incorrect email or password. Please try again.";
+            TempData["AttemptsLeft"] = attemptsLeft;
             return View(loginVM);
         }
 

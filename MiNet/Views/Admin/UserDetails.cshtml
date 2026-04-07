@@ -1,4 +1,4 @@
-﻿@model User
+@model User
 
 @{
     ViewData["Title"] = "Chi Tiết Người Dùng";
@@ -176,6 +176,13 @@
                             </button>
                         </form>
                     }
+
+                    <form asp-controller="Admin" asp-action="DeleteUser" method="post" onsubmit="return confirm('WARNING: This will permanently delete this user account and ALL associated data (posts, comments, likes, friendships, etc.). This action CANNOT be undone. Are you sure you want to proceed?');">
+                        <input type="hidden" name="userId" value="@Model.Id" />
+                        <button type="submit" class="w-full bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 font-semibold transition">
+                            <ion-icon name="trash-outline" class="mr-2"></ion-icon> Xóa Vĩnh Viễn
+                        </button>
+                    </form>
 
                 </div>
 

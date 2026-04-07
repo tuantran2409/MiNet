@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MiNet.Data.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace MiNet.Data.Services
@@ -11,9 +12,12 @@ namespace MiNet.Data.Services
     public class AdminService : IAdminService
     {
         private readonly AppDbContext _context;
-        public AdminService(AppDbContext context)
+        private readonly UserManager<User> _userManager;
+
+        public AdminService(AppDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // ==================== Dashboard ====================
@@ -133,21 +137,100 @@ namespace MiNet.Data.Services
 
         public async Task DeleteUserAsync(int userId)
         {
-            var user = await _context.Users
-                .Include(u => u.Posts)
-                .FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return;
 
-            if (user != null)
+            // 1. Delete notifications belonging to this user
+            var notifications = await _context.Notifications
+                .Where(n => n.UserId == userId)
+                .ToListAsync();
+            _context.Notifications.RemoveRange(notifications);
+
+            // 2. Get all post IDs owned by this user
+            var userPostIds = await _context.Posts
+                .Where(p => p.UserId == userId)
+                .Select(p => p.Id)
+                .ToListAsync();
+
+            if (userPostIds.Any())
             {
-                // Xóa tất cả bài viết của người dùng
-                foreach (var post in user.Posts)
-                {
-                    post.IsDeleted = true;
-                }
+                // 3. Delete likes on user's posts
+                var likesOnPosts = await _context.Likes
+                    .Where(l => userPostIds.Contains(l.PostId))
+                    .ToListAsync();
+                _context.Likes.RemoveRange(likesOnPosts);
 
-                user.IsDeleted = true;
-                await _context.SaveChangesAsync();
+                // 4. Delete comments on user's posts
+                var commentsOnPosts = await _context.Comments
+                    .Where(c => userPostIds.Contains(c.PostId))
+                    .ToListAsync();
+                _context.Comments.RemoveRange(commentsOnPosts);
+
+                // 5. Delete favorites on user's posts
+                var favoritesOnPosts = await _context.Favorites
+                    .Where(f => userPostIds.Contains(f.PostId))
+                    .ToListAsync();
+                _context.Favorites.RemoveRange(favoritesOnPosts);
+
+                // 6. Delete reports on user's posts
+                var reportsOnPosts = await _context.Reports
+                    .Where(r => userPostIds.Contains(r.PostId))
+                    .ToListAsync();
+                _context.Reports.RemoveRange(reportsOnPosts);
+
+                // 7. Delete user's posts
+                var posts = await _context.Posts
+                    .Where(p => p.UserId == userId)
+                    .ToListAsync();
+                _context.Posts.RemoveRange(posts);
             }
+
+            // 8. Delete likes made by this user (on other posts)
+            var userLikes = await _context.Likes
+                .Where(l => l.UserId == userId)
+                .ToListAsync();
+            _context.Likes.RemoveRange(userLikes);
+
+            // 9. Delete comments made by this user (on other posts)
+            var userComments = await _context.Comments
+                .Where(c => c.UserId == userId)
+                .ToListAsync();
+            _context.Comments.RemoveRange(userComments);
+
+            // 10. Delete favorites made by this user
+            var userFavorites = await _context.Favorites
+                .Where(f => f.UserId == userId)
+                .ToListAsync();
+            _context.Favorites.RemoveRange(userFavorites);
+
+            // 11. Delete reports made by this user
+            var userReports = await _context.Reports
+                .Where(r => r.UserId == userId)
+                .ToListAsync();
+            _context.Reports.RemoveRange(userReports);
+
+            // 12. Delete user's stories
+            var userStories = await _context.Stories
+                .Where(s => s.UserId == userId)
+                .ToListAsync();
+            _context.Stories.RemoveRange(userStories);
+
+            // 13. Delete friend requests (sent or received)
+            var friendRequests = await _context.FriendRequests
+                .Where(fr => fr.SenderId == userId || fr.ReceiverId == userId)
+                .ToListAsync();
+            _context.FriendRequests.RemoveRange(friendRequests);
+
+            // 14. Delete friendships (sender or receiver)
+            var friendships = await _context.Friendships
+                .Where(f => f.SenderId == userId || f.ReceiverId == userId)
+                .ToListAsync();
+            _context.Friendships.RemoveRange(friendships);
+
+            await _context.SaveChangesAsync();
+
+            // 15. Delete the user via UserManager (removes Identity claims, roles, logins)
+            await _userManager.DeleteAsync(user);
         }
 
         // ==================== Analytics ====================

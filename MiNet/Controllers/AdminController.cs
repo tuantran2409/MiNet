@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -113,7 +113,7 @@ namespace MiNet.Controllers
         public async Task<IActionResult> DeleteUser(int userId)
         {
             await _adminService.DeleteUserAsync(userId);
-            TempData["SuccessMessage"] = "✓ Người dùng đã bị xóa!";
+            TempData["SuccessMessage"] = "✓ User account and all associated data has been permanently deleted.";
             return RedirectToAction("Users");
         }
 
