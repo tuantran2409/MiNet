@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims;
+@using System.Security.Claims;
 @model Post
 
 @{
@@ -163,15 +163,17 @@
                             <p class="mt-0.5">
                                 @comment.Content
                             </p>
-
-                            <form asp-controller="Home" asp-action="RemovePostComment" class="remove-comment-form">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="commentId" value="@comment.Id" />
-                                <input type="hidden" name="postId" value="@comment.PostId" />
-                                <button type="submit" class="text-red-500 text-xs ml-2" title="Remove post comment">
-                                    <ion-icon name="trash-outline"></ion-icon>
-                                </button>
-                            </form>
+                            @if (User.IsInRole("Admin") || Model.UserId == loggedInUserId || comment.UserId == loggedInUserId)
+                            {
+                                <form asp-controller="Home" asp-action="RemovePostComment" class="remove-comment-form" >
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="commentId" value="@comment.Id" />
+                                    <input type="hidden" name="postId" value="@comment.PostId" />
+                                    <button type="submit" class="text-red-500 text-xs ml-2" title="Remove post comment">
+                                        <ion-icon name="trash-outline"></ion-icon>
+                                    </button>
+                                </form>
+                            }
                         </div>
                     </div>
                 </div>
