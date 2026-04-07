@@ -1,4 +1,6 @@
-﻿@model GetUserProfileVM;
+@using System.Security.Claims
+@using MiNet.Data.Helpers.Constants
+@model GetUserProfileVM;
 
 <main id="site__main" class="2xl:ml-[--w-side]  xl:ml-[--w-side-sm] p-2.5 h-[calc(100vh-var(--m-top))] mt-[--m-top]">
 
@@ -14,10 +16,30 @@
                                 Url.Content("~/" + Model.User.ProfilePictureUrl))" />
                         </div>
                     </div>
-                </div>
-                <div>
-                    <h3 class="md:text-3xl text-base font-bold text-black">@Model.User.Name</h3>
-                    <p class="mt-2 text-gray-500">@Model.User.UserName</p>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="md:text-3xl text-base font-bold text-black">@Model.User.Name</h3>
+                            <p class="mt-2 text-gray-500">@Model.User.UserName</p>
+                        </div>
+
+                        @{
+                            var isTargetAdmin = Model.Roles.Contains(AppRoles.Admin);
+                            var isCurrentAdmin = User.IsInRole(AppRoles.Admin);
+                            var isSelf = User.FindFirstValue(ClaimTypes.NameIdentifier) == Model.User.Id.ToString();
+                        }
+
+                        @if (!isSelf && (!isTargetAdmin || isCurrentAdmin))
+                        {
+                            <form asp-controller="Chat" asp-action="StartPrivateChat" method="post">
+                                <input type="hidden" name="targetUserId" value="@Model.User.Id" />
+                                <button type="submit" class="button bg-primary text-white flex items-center gap-2 px-6 py-2 rounded-lg font-semibold hover:bg-primary-dark transition shadow-sm">
+                                    <ion-icon name="chatbubble-ellipses-outline" class="text-xl"></ion-icon>
+                                    Message
+                                </button>
+                            </form>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
@@ -41,27 +63,24 @@
 
                             <h3 class="font-bold text-lg">
                                 Friends
-                                <span class="block text-sm text-gray-500 mt-0. font-normal"> 20 friends </span>
+                                <span class="block text-sm text-gray-500 mt-0. font-normal"> @Model.Friends.Count friends </span>
                             </h3>
 
                         </div>
 
                         <div class="grid grid-cols-3 gap-2 gap-y-5 text-center text-sm mt-4 mb-2">
-                            <div>
-                                <div class="relative w-full aspect-square rounded-lg overflow-hidden">
-                                    <img src="~/images/avatar/user.png" class="object-cover w-full h-full inset-0" />
+                            @foreach (var friend in Model.Friends.Take(6))
+                            {
+                                <div>
+                                    <a asp-controller="Users" asp-action="Details" asp-route-userId="@friend.Id">
+                                        <div class="relative w-full aspect-square rounded-lg overflow-hidden">
+                                            <img src="@(string.IsNullOrEmpty(friend.ProfilePictureUrl) ? Url.Content("~/images/avatar/user.png") : Url.Content("~/" + friend.ProfilePictureUrl))" class="object-cover w-full h-full inset-0" />
+                                        </div>
+
+                                        <div class="mt-2 line-clamp-1">@friend.Name</div>
+                                    </a>
                                 </div>
-
-                                <div class="mt-2 line-clamp-1">Tuan Tran</div>
-                            </div>
-
-                            <div>
-                                <div class="relative w-full aspect-square rounded-lg overflow-hidden">
-                                    <img src="~/images/avatar/user.png" class="object-cover w-full h-full inset-0" />
-                                </div>
-
-                                <div class="mt-2 line-clamp-1">Tuan Tran</div>
-                            </div>
+                            }
                         </div>
                     </div>
                 </div>

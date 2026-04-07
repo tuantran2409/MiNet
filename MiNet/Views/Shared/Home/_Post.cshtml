@@ -4,18 +4,6 @@
 @{
     int loggedInUserId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int result) ? result : 0;
 
-    TimeSpan timeSpanSincePosted = DateTime.Now - Model.DateCreated;
-
-    string displayTime = timeSpanSincePosted switch
-    {
-        var t when t.TotalDays >= 365 => $"{(int)(t.TotalDays / 365)} year{(t.TotalDays / 365 >= 2 ? "s" : "")} ago",
-        var t when t.TotalDays >= 30 => $"{(int)(t.TotalDays / 30)} month{(t.TotalDays / 30 >= 2 ? "s" : "")} ago",
-        var t when t.TotalDays >= 1 => $"{(int)t.TotalDays} day{(t.TotalDays >= 2 ? "s" : "")} ago",
-        var t when t.TotalHours >= 1 => $"{(int)t.TotalHours} hour{(t.TotalHours >= 2 ? "s" : "")} ago",
-        var t when t.TotalMinutes >= 1 => $"{(int)t.TotalMinutes} minute{(t.TotalMinutes >= 2 ? "s" : "")} ago",
-        _ => "Just now"
-    };
-
     bool isFavorited = Model.Favorites.Any(n => n.UserId == loggedInUserId);
     bool isLiked = Model.Likes.Any(n => n.UserId == loggedInUserId);
     bool isPrivate = Model.IsPrivate == true && Model.UserId == loggedInUserId;
@@ -36,6 +24,19 @@
         <div class="flex-1">
             <a asp-controller="Users" asp-action="Details" asp-route-userId="@Model.UserId">
                 <h4 class="text-black">@Model.User.Name</h4>
+                @{
+                        TimeSpan timeSpanSincePosted = DateTime.Now - Model.DateCreated;
+
+                        string displayTime = timeSpanSincePosted switch
+                        {
+                            var t when t.TotalDays >= 365 => $"{(int)(t.TotalDays / 365)} year{(t.TotalDays / 365 >= 2 ? "s" : "")} ago",
+                            var t when t.TotalDays >= 30 => $"{(int)(t.TotalDays / 30)} month{(t.TotalDays / 30 >= 2 ? "s" : "")} ago",
+                            var t when t.TotalDays >= 1 => $"{(int)t.TotalDays} day{(t.TotalDays >= 2 ? "s" : "")} ago",
+                            var t when t.TotalHours >= 1 => $"{(int)t.TotalHours} hour{(t.TotalHours >= 2 ? "s" : "")} ago",
+                            var t when t.TotalMinutes >= 1 => $"{(int)t.TotalMinutes} minute{(t.TotalMinutes >= 2 ? "s" : "")} ago",
+                            _ => "Just now"
+                        };
+                    }
                 <div class="text-xs text-gray-500/80" title="@Model.DateCreated.ToString("dd/MM/yyyy hh:mm")"> @displayTime </div>
             </a>
         </div>

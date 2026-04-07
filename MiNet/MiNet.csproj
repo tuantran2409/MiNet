@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="test.txt" />
+    <None Remove="test_playwright.py" />
+    <None Remove="test_upload.py" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Views\Shared\Sidebar\" />
     <Folder Include="wwwroot\images\welcome\" />
     <Folder Include="wwwroot\images\profilePictures\" />

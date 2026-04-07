@@ -1,0 +1,471 @@
+@model MiNet.ViewModels.Chat.ConversationDetailsVM
+@{
+    ViewData["Title"] = Model.Conversation.IsGroup ? Model.Conversation.Title : Model.Conversation.Members.FirstOrDefault(m => m.UserId != Model.CurrentUserId)?.User.Name;
+    Layout = "_Layout";
+    var otherUser = Model.Conversation.IsGroup ? null : Model.Conversation.Members.FirstOrDefault(m => m.UserId != Model.CurrentUserId)?.User;
+    var isUserUnavailable = otherUser?.IsDeleted ?? false;
+}
+
+<main id="site__main" class="2xl:ml-[--w-side] xl:ml-[--w-side-sm] mt-[--m-top] h-[calc(100vh-var(--m-top))] bg-white flex overflow-hidden">
+    <!-- Chat Area -->
+    <div class="flex-1 flex flex-col h-full bg-slate-50/30">
+        <!-- Chat Header -->
+        <div class="h-16 px-6 border-b border-gray-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-20 shadow-sm">
+            <div class="flex items-center gap-3">
+                <a asp-action="Index" class="md:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+                    <ion-icon name="chevron-back-outline" class="text-2xl"></ion-icon>
+                </a>
+                
+                <div class="relative">
+                    @if (Model.Conversation.IsGroup)
+                    {
+                        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
+                            <ion-icon name="people" class="text-xl"></ion-icon>
+                        </div>
+                    }
+                    else
+                    {
+                        var avatarUrl = string.IsNullOrEmpty(otherUser?.ProfilePictureUrl) ? "/images/avatar/user.png" : "/" + otherUser.ProfilePictureUrl.TrimStart('/');
+                        <img src="@Url.Content("~" + avatarUrl)" 
+                             class="w-10 h-10 rounded-xl object-cover shadow-sm bg-gray-100 @(isUserUnavailable ? "grayscale opacity-50" : "")" 
+                             alt="Avatar">
+                        @if (!isUserUnavailable)
+                        {
+                            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                        }
+                    }
+                </div>
+                
+                <div>
+                    <h2 class="font-bold text-gray-900 leading-tight">
+                        @(Model.Conversation.IsGroup ? (Model.Conversation.Title ?? "Group Chat") : (otherUser?.Name ?? "User unavailable"))
+                    </h2>
+                    <p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">
+                        @if (isUserUnavailable) { <span class="text-red-400">Account Deleted</span> }
+                        else if (Model.Conversation.IsGroup) { <span>@Model.Conversation.Members.Count members</span> }
+                        else { <span class="text-green-500">Active Now</span> }
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex gap-2 text-gray-400">
+                <div class="relative group">
+                    <button class="p-2 hover:bg-gray-100 rounded-xl transition-all hover:text-gray-900" uk-toggle="target: #chat-options">
+                        <ion-icon name="ellipsis-horizontal" class="text-xl"></ion-icon>
+                    </button>
+                    <!-- Dropdown using UIkit or custom logic -->
+                    <div id="chat-options" uk-dropdown="mode: click; pos: bottom-right; animation: uk-animation-slide-top-small">
+                        <ul class="uk-nav uk-dropdown-nav p-1">
+                            @if (Model.Conversation.IsGroup)
+                            {
+                                <li>
+                                    <form asp-action="Leave" asp-route-id="@Model.Conversation.Id" method="post" onsubmit="return confirm('Leave this group?');">
+                                        <button type="submit" class="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg flex items-center gap-2">
+                                            <ion-icon name="log-out-outline"></ion-icon> Leave Group
+                                        </button>
+                                    </form>
+                                </li>
+                            }
+                            <li><a href="javascript:void(0)" onclick="toggleMute()" class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg flex items-center gap-2" id="muteBtn"><ion-icon name="notifications-off-outline"></ion-icon> <span>Mute</span></a></li>
+                            <li><a href="javascript:void(0)" onclick="clearHistory()" class="px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg flex items-center gap-2"><ion-icon name="trash-outline"></ion-icon> Clear History</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="messagesList" class="flex-1 overflow-y-auto px-6 py-8 flex flex-col gap-6 custom-scrollbar scroll-smooth" data-simplebar>
+            @foreach (var msg in Model.Messages)
+            {
+                var isMe = msg.SenderId == Model.CurrentUserId;
+                var isSenderDeleted = msg.Sender?.IsDeleted ?? false;
+                
+                <div class="flex @(isMe ? "justify-end" : "justify-start") group animate-fadeSlideIn">
+                    <div class="flex @(isMe ? "flex-row-reverse" : "flex-row") items-end gap-3 max-w-[80%] md:max-w-[70%]">
+                        <!-- Sender Avatar (only for others) -->
+                        @if (!isMe)
+                        {
+                            var msgAvatar = string.IsNullOrEmpty(msg.Sender?.ProfilePictureUrl) ? "/images/avatar/user.png" : "/" + msg.Sender.ProfilePictureUrl.TrimStart('/');
+                            <img src="@Url.Content("~" + msgAvatar)" 
+                                 class="w-8 h-8 rounded-lg object-cover flex-shrink-0 shadow-sm border border-white @(isSenderDeleted ? "grayscale opacity-50" : "")" 
+                                 uk-tooltip="@(msg.Sender?.Name ?? "User unavailable")">
+                        }
+
+                        <!-- Message Content -->
+                        <div class="flex flex-col gap-1 @(isMe ? "items-end" : "items-start")">
+                            @if (Model.Conversation.IsGroup && !isMe)
+                            {
+                                <span class="text-[10px] font-bold text-gray-400 @(isMe ? "mr-1" : "ml-1")">
+                                    @(msg.Sender?.Name ?? "User unavailable")
+                                </span>
+                            }
+
+                            <div class="px-4 py-3 rounded-2xl shadow-sm relative @(isMe ? "bg-blue-600 text-white rounded-tr-none bubble-me" : "bg-white text-gray-800 rounded-tl-none border border-gray-100 bubble-other")">
+                                @if (msg.Type == MessageType.Image)
+                                {
+                                    <div class="mb-1 -mx-2 -mt-1 rounded-xl overflow-hidden">
+                                        <img src="/@msg.FileUrl" class="max-w-full max-h-80 object-cover cursor-zoom-in" uk-toggle="target: #image-preview; cls: uk-open">
+                                    </div>
+                                }
+                                else if (msg.Type == MessageType.File)
+                                {
+                                    <div class="flex items-center gap-3 p-2 bg-black/5 rounded-xl border border-white/10 mb-2">
+                                        <div class="p-2 bg-blue-500 text-white rounded-lg"><ion-icon name="document-outline" class="text-xl"></ion-icon></div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-xs font-bold truncate">File Shared</p>
+                                            <p class="text-[10px] opacity-70 truncate">@msg.FileUrl?.Split('/').Last()</p>
+                                        </div>
+                                        <a href="/@msg.FileUrl" download class="p-2 hover:bg-black/10 rounded-lg transition-colors"><ion-icon name="download-outline"></ion-icon></a>
+                                    </div>
+                                }
+
+                                <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">@msg.Content</p>
+                                
+                                <div class="flex items-center justify-end gap-1 mt-1 opacity-50">
+                                    <span class="text-[9px] font-medium tracking-tighter uppercase">@msg.DateSent.ToString("t")</span>
+                                    @if (isMe)
+                                    {
+                                        <ion-icon name="checkmark-done" class="text-[10px]"></ion-icon>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Input Area -->
+        <div class="px-6 py-4 bg-white/80 border-t border-gray-100 backdrop-blur-md flex flex-col gap-2 relative">
+            <!-- File upload preview -->
+            <div id="uploadPreview" style="display: none;" class="w-full p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center justify-between animate-fadeSlideIn">
+                <div class="flex items-center gap-3">
+                    <div id="previewIcon" class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                        <ion-icon name="document-attach" class="text-2xl"></ion-icon>
+                    </div>
+                    <div>
+                        <p id="previewName" class="text-sm font-bold text-gray-900 truncate max-w-[200px]">filename.pdf</p>
+                        <p id="previewSize" class="text-[11px] text-gray-400 font-medium">450 KB</p>
+                    </div>
+                </div>
+                <button type="button" onclick="cancelUpload()" class="p-2 hover:bg-red-50 text-red-400 rounded-xl transition-colors">
+                    <ion-icon name="close-circle" class="text-2xl"></ion-icon>
+                </button>
+            </div>
+
+            <div class="flex items-end gap-3 w-full">
+                <div class="flex gap-1" style="align-items: center;">
+                    <label for="fileInput" id="attachBtn" class="p-3 hover:bg-gray-100 text-gray-400 hover:text-blue-600 rounded-2xl transition-all cursor-pointer inline-flex items-center" uk-tooltip="Attach file (Max 10MB)">
+                        <ion-icon name="add-circle-outline" class="text-2xl"></ion-icon>
+                    </label>
+                    <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)" />
+                </div>
+
+                <div class="flex-1 relative">
+                    <textarea id="messageInput" 
+                              rows="1" 
+                              placeholder="Type something amazing..." 
+                              class="w-full pl-4 pr-12 py-3.5 bg-gray-50/50 border-gray-100 border rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none overflow-hidden max-h-32"
+                              oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                    <button type="button" class="absolute right-3 bottom-2.5 p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors">
+                        <ion-icon name="happy-outline" class="text-xl"></ion-icon>
+                    </button>
+                </div>
+
+                <button id="sendBtn" 
+                        type="button"
+                        style="background-color: #2563EB; color: #FFFFFF;"
+                        class="p-4 rounded-2xl shadow-lg shadow-blue-200 hover:shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center cursor-pointer"
+                        onclick="sendMessage()">
+                    <ion-icon name="send" class="text-2xl"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Hidden Modal for Image Preview -->
+<div id="image-preview" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical !bg-transparent !p-0 max-w-4xl text-center">
+        <button class="uk-modal-close-default !text-white !-top-10" type="button" uk-close></button>
+        <img id="modalImage" src="" class="rounded-xl shadow-2xl inline-block">
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const conversationId = @Model.Conversation.Id;
+    const currentUserId = @Model.CurrentUserId;
+    let selectedFile = null;
+    let selectedFileUrl = null;
+    let selectedFileType = 0; // 0=Text, 1=Image, 2=File
+    let isConnected = false;
+
+    // Get antiforgery token for AJAX requests
+    function getAntiForgeryToken() {
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        return tokenInput ? tokenInput.value : '';
+    }
+
+    // 1. Establish SignalR connection
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.onreconnecting(() => {
+        isConnected = false;
+        document.getElementById('sendBtn').disabled = true;
+    });
+
+    connection.onreconnected(() => {
+        isConnected = true;
+        document.getElementById('sendBtn').disabled = false;
+        connection.invoke("JoinConversation", conversationId);
+    });
+
+    connection.on("ReceiveMessage", function (msg) {
+        appendMessage(msg);
+        scrollToBottom();
+    });
+
+    connection.start()
+        .then(() => {
+            isConnected = true;
+            console.log("Connected to chat hub");
+            return connection.invoke("JoinConversation", conversationId);
+        })
+        .catch(err => {
+            console.error("SignalR connection error:", err.toString());
+            showToast('Could not connect to chat. Please refresh the page.', 'error');
+        });
+
+    // 2. Message Logic
+    async function sendMessage() {
+        const input = document.getElementById("messageInput");
+        const content = input.value.trim();
+
+        if (!content && !selectedFileUrl) return;
+
+        if (!isConnected) {
+            showToast('Not connected. Please wait or refresh the page.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('sendBtn');
+        btn.disabled = true;
+
+        try {
+            if (selectedFileUrl) {
+                await connection.invoke("SendMessage", conversationId, content || "", selectedFileUrl, selectedFileType);
+                cancelUpload();
+            } else {
+                await connection.invoke("SendMessage", conversationId, content, null, 0);
+            }
+            input.value = "";
+            input.style.height = '';
+        } catch (err) {
+            console.error("Send error:", err);
+            showToast('Failed to send message. Please try again.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function appendMessage(msg) {
+        const list = document.querySelector("#messagesList .simplebar-content") || document.querySelector("#messagesList");
+        if (!list) {
+            console.error("Could not find messages list container");
+            return;
+        }
+        
+        const isMe = msg.senderId === currentUserId;
+        
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `flex ${isMe ? "justify-end" : "justify-start"} group animate-fadeSlideIn mb-6`;
+        
+        let attachmentHtml = "";
+        if (msg.type === 1) { // Image
+            attachmentHtml = `<div class="mb-1 -mx-2 -mt-1 rounded-xl overflow-hidden"><img src="/${msg.fileUrl}" class="max-w-full max-h-80 object-cover cursor-zoom-in"></div>`;
+        } else if (msg.type === 2) { // File
+             attachmentHtml = `
+                <div class="flex items-center gap-3 p-2 bg-black/5 rounded-xl border border-white/10 mb-2">
+                    <div class="p-2 bg-blue-500 text-white rounded-lg"><ion-icon name="document-outline" class="text-xl"></ion-icon></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold truncate">File Shared</p>
+                        <p class="text-[10px] opacity-70 truncate text-ellipsis">${msg.fileUrl.split('/').pop()}</p>
+                    </div>
+                </div>`;
+        }
+
+        messageDiv.innerHTML = `
+            <div class="flex ${isMe ? "flex-row-reverse" : "flex-row"} items-end gap-3 max-w-[80%] md:max-w-[70%]">
+                ${!isMe ? `<img src="${msg.senderProfilePicture ? ('/' + msg.senderProfilePicture.replace(/^\/+/, '')) : "/images/avatar/user.png"}" class="w-8 h-8 rounded-lg object-cover flex-shrink-0 shadow-sm ${msg.isDeletedUser ? "grayscale opacity-50" : ""}">` : ''}
+                <div class="flex flex-col gap-1 ${isMe ? "items-end" : "items-start"}">
+                    <div class="px-4 py-3 rounded-2xl shadow-sm relative ${isMe ? "bg-blue-600 text-white rounded-tr-none" : "bg-white text-gray-800 rounded-tl-none border border-gray-100"}">
+                        ${attachmentHtml}
+                        <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">${msg.content}</p>
+                        <div class="flex items-center justify-end gap-1 mt-1 opacity-50">
+                            <span class="text-[9px] font-medium uppercase tracking-tighter">${new Date(msg.dateSent).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            ${isMe ? '<ion-icon name="checkmark-done" class="text-[10px]"></ion-icon>' : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        list.appendChild(messageDiv);
+    }
+
+    function scrollToBottom() {
+        const list = document.querySelector("#messagesList");
+        if (!list) return;
+        const simpleBar = SimpleBar.instances.get(list);
+        if (simpleBar) {
+            const scrollElement = simpleBar.getScrollElement();
+            scrollElement.scrollTop = scrollElement.scrollHeight;
+        } else {
+            list.scrollTop = list.scrollHeight;
+        }
+    }
+
+    // 3. File Handling
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+    async function handleFileSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        if (file.size > MAX_FILE_SIZE) {
+            alert("File is too large! Maximum size is 10MB.");
+            input.value = "";
+            return;
+        }
+
+        // Show preview
+        const preview = document.getElementById("uploadPreview");
+        document.getElementById("previewName").textContent = file.name;
+        document.getElementById("previewSize").textContent = (file.size / 1024).toFixed(1) + " KB";
+        preview.style.display = "flex";
+        
+        // Visual indicator for image
+        if (file.type.startsWith("image/")) {
+            document.getElementById("previewIcon").classList.replace("text-blue-600", "text-purple-600");
+            document.getElementById("previewIcon").innerHTML = '<ion-icon name="image" class="text-2xl"></ion-icon>';
+            selectedFileType = 1;
+        } else {
+            selectedFileType = 2;
+        }
+
+        // Upload to server
+        const formData = new FormData();
+        formData.append("file", file);
+
+        document.getElementById("sendBtn").disabled = true;
+
+        try {
+            const response = await fetch('/Chat/UploadAttachment', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                selectedFileUrl = data.url;
+                document.getElementById("sendBtn").disabled = false;
+            } else {
+                const errText = await response.text();
+                throw new Error(errText || `Server error ${response.status}`);
+            }
+        } catch (error) {
+            console.error("Upload error:", error);
+            showToast('Error uploading file: ' + error.message, 'error');
+            cancelUpload();
+        }
+    }
+
+    function cancelUpload() {
+        selectedFile = null;
+        selectedFileUrl = null;
+        selectedFileType = 0;
+        document.getElementById("fileInput").value = "";
+        document.getElementById("uploadPreview").style.display = "none";
+        document.getElementById("sendBtn").disabled = false;
+    }
+
+    // Enter to send
+    document.getElementById("messageInput").addEventListener("keydown", function(e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Toast notification helper
+    function showToast(message, type = 'info') {
+        const existing = document.getElementById('chat-toast');
+        if (existing) existing.remove();
+
+        const color = type === 'error' ? 'bg-red-500' : 'bg-gray-800';
+        const toast = document.createElement('div');
+        toast.id = 'chat-toast';
+        toast.className = `fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-white text-sm font-medium shadow-xl ${color} animate-fadeSlideIn`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
+    // Mute toggle stub
+    let isMuted = false;
+    function toggleMute() {
+        isMuted = !isMuted;
+        const btn = document.getElementById('muteBtn');
+        if (btn) {
+            btn.querySelector('span').textContent = isMuted ? 'Unmute' : 'Mute';
+        }
+        showToast(isMuted ? 'Notifications muted' : 'Notifications unmuted');
+    }
+
+    // Clear history stub
+    async function clearHistory() {
+        if (!confirm('Clear all messages in this chat? This cannot be undone.')) return;
+        showToast('Clear history is not yet implemented.', 'info');
+    }
+
+    // Auto scroll on load
+    window.addEventListener('load', () => {
+        setTimeout(scrollToBottom, 100);
+    });
+</script>
+}
+
+<style>
+    .custom-scrollbar [data-simplebar-track="vertical"] { background-color: transparent; width: 6px; }
+    .custom-scrollbar [data-simplebar-scrollbar] { background-color: rgba(148, 163, 184, 0.2); border-radius: 10px; }
+    
+    .animate-fadeSlideIn { animation: fadeSlideIn 0.3s ease-out forwards; }
+    @@keyframes fadeSlideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bubble-me::before {
+        content: '';
+        position: absolute;
+        top: 0; right: -4px;
+        border-top: 8px solid #2563EB;
+        border-right: 4px solid transparent;
+    }
+    
+    .bubble-other::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -4px;
+        border-top: 8px solid #FFFFFF;
+        border-left: 4px solid transparent;
+    }
+</style>
