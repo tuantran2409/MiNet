@@ -362,10 +362,28 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-# Custom Auth Secrets
+# Custom Auth Secrets & Local Config
 appsettings.Development.json
-/MiNet/appsettings.Development.json
-/MiNet/wwwroot/images/profilePictures
-/MiNet/wwwroot/images/avatars
-/MiNet/wwwroot/images/stories
-/MiNet/wwwroot/images/posts
+MiNet/appsettings.Development.json
+.env
+.env.*
+
+# Uploaded Media (Local development files)
+MiNet/wwwroot/images/profilePictures/*
+MiNet/wwwroot/images/avatars/*
+MiNet/wwwroot/images/stories/*
+MiNet/wwwroot/images/posts/*
+MiNet/wwwroot/uploads/*
+MiNet/wwwroot/attachments/*
+!*/.gitkeep
+
+# IDE Settings
+.vscode/
+.idea/
+*.swp
+*.bak
+
+# OS Files
+Thumbs.db
+Desktop.ini
+.DS_Store

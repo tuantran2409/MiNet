@@ -1,0 +1,145 @@
+@model MiNet.ViewModels.Chat.ChatListVM
+@{
+    ViewData["Title"] = "Messages";
+    Layout = "_Layout";
+}
+
+<main id="site__main" class="2xl:ml-[--w-side] xl:ml-[--w-side-sm] mt-[--m-top] h-[calc(100vh-var(--m-top))] bg-slate-50 flex overflow-hidden">
+    <!-- Sidebar - Conversation List -->
+    <div class="w-full md:w-80 lg:w-96 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
+            <h1 class="text-xl font-bold text-gray-900 tracking-tight">Messages</h1>
+            <div class="flex gap-2">
+                <button class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500" uk-tooltip="New Message">
+                     <ion-icon name="create-outline" class="text-xl"></ion-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="p-4 border-b border-gray-50">
+            <div class="relative">
+                <ion-icon name="search-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></ion-icon>
+                <input type="text" placeholder="Search conversations..." 
+                       class="w-full pr-4 py-2 bg-gray-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" style="padding-left: 2.5rem !important;">
+            </div>
+        </div>
+
+        <!-- Chat List -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar" data-simplebar>
+            @if (!Model.Conversations.Any())
+            {
+                <div class="flex flex-col items-center justify-center h-64 text-center p-6">
+                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 text-blue-500">
+                        <ion-icon name="chatbubbles-outline" class="text-3xl"></ion-icon>
+                    </div>
+                    <p class="text-gray-500 font-medium">No messages yet</p>
+                    <p class="text-xs text-gray-400 mt-1">Start a conversation with your friends</p>
+                    <a asp-controller="Friends" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all">
+                        Find Friends
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="divide-y divide-gray-50">
+                    @foreach (var chat in Model.Conversations)
+                    {
+                        var otherMember = chat.Members.FirstOrDefault(m => m.UserId != Model.CurrentUserId)?.User;
+                        var lastMessage = chat.Messages.FirstOrDefault();
+                        var isActive = false; // logic for active chat highlights
+
+                        <a asp-action="Message" asp-route-id="@chat.Id" 
+                           class="flex items-center gap-3 p-4 hover:bg-blue-50/50 transition-all group relative border-l-4 @(isActive ? "border-blue-500 bg-blue-50" : "border-transparent")">
+                            
+                            <!-- Avatar -->
+                            <div class="relative flex-shrink-0">
+                                @if (chat.IsGroup)
+                                {
+                                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white shadow-sm overflow-hidden">
+                                        <ion-icon name="people" class="text-2xl"></ion-icon>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img src="@(otherMember?.ProfilePictureUrl ?? "/images/avatars/default.png")" 
+                                         class="w-12 h-12 rounded-2xl object-cover shadow-sm bg-gray-200" 
+                                         alt="@(otherMember?.Name ?? "User")">
+                                    @if (otherMember != null && !otherMember.IsDeleted)
+                                    {
+                                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                                    }
+                                }
+                            </div>
+
+                            <!-- Info -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-baseline mb-0.5">
+                                    <h3 class="font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                                        @(chat.IsGroup ? (chat.Title ?? "Group Chat") : (otherMember?.Name ?? "User Unavailable"))
+                                    </h3>
+                                    @if (lastMessage != null)
+                                    {
+                                        <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+                                            @lastMessage.DateSent.ToString("t")
+                                        </span>
+                                    }
+                                </div>
+                                <p class="text-sm text-gray-500 truncate mt-0.5 font-medium">
+                                    @if (lastMessage != null)
+                                    {
+                                        if (lastMessage.SenderId == Model.CurrentUserId)
+                                        {
+                                            <span class="text-blue-500">You:</span>
+                                        }
+                                        
+                                        @if (lastMessage.Type == MessageType.Image)
+                                        {
+                                            <span class="flex items-center gap-1 italic"><ion-icon name="image-outline"></ion-icon> Sent an image</span>
+                                        }
+                                        else if (lastMessage.Type == MessageType.File)
+                                        {
+                                            <span class="flex items-center gap-1 italic"><ion-icon name="document-attach-outline"></ion-icon> Shared a file</span>
+                                        }
+                                        else
+                                        {
+                                            @lastMessage.Content
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="italic text-gray-400">No messages yet</span>
+                                    }
+                                </p>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Empty State / Placeholder for main view -->
+    <div class="hidden md:flex flex-1 flex-col items-center justify-center bg-white">
+        <div class="max-w-md text-center p-8">
+            <div class="relative inline-block mb-8">
+                <div class="absolute -inset-4 bg-blue-100 rounded-full blur-2xl opacity-50 animate-pulse"></div>
+                <img src="~/images/icons/message-placeholder.png" alt="Select chat" class="relative w-48 mx-auto -rotate-12 transition-transform hover:rotate-0 duration-500" 
+                     onerror="this.src='https://cdn-icons-png.flaticon.com/512/3141/3141733.png'">
+            </div>
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">Your Inbox</h2>
+            <p class="text-gray-500 text-lg leading-relaxed">
+                Send private photos and messages to a friend or group.
+            </p>
+            <button class="mt-8 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 hover:shadow-xl hover:scale-105 active:scale-95 transition-all">
+                Send Message
+            </button>
+        </div>
+    </div>
+</main>
+
+<style>
+    .custom-scrollbar [data-simplebar-track="vertical"] { background-color: transparent; width: 6px; }
+    .custom-scrollbar [data-simplebar-scrollbar] { background-color: #E2E8F0; border-radius: 10px; }
+</style>

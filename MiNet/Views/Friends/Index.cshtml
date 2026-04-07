@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims;
+@using System.Security.Claims;
 @model FriendshipVM;
 
 <main id="site__main" class="2xl:ml-[--w-side]  xl:ml-[--w-side-sm] p-2.5 h-[calc(100vh-var(--m-top))] mt-[--m-top]">
@@ -31,12 +31,30 @@
                             <a asp-controller="Users" asp-action="Details" asp-route-userId="@friend.Id" class="text-base font-semibold capitalize text-black">@friend.Name</a>
                         </div>
 
-                        <form asp-controller="Friends" asp-action="RemoveFriend" method="post">
-                            <input type="hidden" name="friendshipId" value="@_friendship.Id" />
-                            <button type="submit" class="button bg-red-soft text-red gap-1 max-md:hidden">
-                                <ion-icon name="remove-circle-outline" class="text-xl -ml-1"></ion-icon> Remove
-                            </button>
-                        </form>
+                        <div class="flex items-center gap-2">
+                            @{
+                                var adminIds = (List<int>)(ViewBag.AdminIds ?? new List<int>());
+                                var isFriendAdmin = adminIds.Contains(friend.Id);
+                                var isCurrentAdmin = User.IsInRole(AppRoles.Admin);
+                            }
+
+                            @if (!isFriendAdmin || isCurrentAdmin)
+                            {
+                                <form asp-controller="Chat" asp-action="StartPrivateChat" method="post">
+                                    <input type="hidden" name="targetUserId" value="@friend.Id" />
+                                    <button type="submit" class="button bg-primary-soft text-primary gap-1 max-md:hidden">
+                                        <ion-icon name="chatbubble-ellipses-outline" class="text-xl -ml-1"></ion-icon> Message
+                                    </button>
+                                </form>
+                            }
+
+                            <form asp-controller="Friends" asp-action="RemoveFriend" method="post">
+                                <input type="hidden" name="friendshipId" value="@_friendship.Id" />
+                                <button type="submit" class="button bg-red-soft text-red gap-1 max-md:hidden">
+                                    <ion-icon name="remove-circle-outline" class="text-xl -ml-1"></ion-icon> Remove
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 }
             </div>

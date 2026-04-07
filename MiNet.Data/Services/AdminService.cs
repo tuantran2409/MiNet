@@ -215,22 +215,18 @@ namespace MiNet.Data.Services
                 .ToListAsync();
             _context.Stories.RemoveRange(userStories);
 
-            // 13. Delete friend requests (sent or received)
-            var friendRequests = await _context.FriendRequests
-                .Where(fr => fr.SenderId == userId || fr.ReceiverId == userId)
-                .ToListAsync();
-            _context.FriendRequests.RemoveRange(friendRequests);
+            // Note: We do NOT delete FriendRequests and Friendships here anymore 
+            // to preserve the "User unavailable" context in lists, but we could if needed.
+            // For now, let's keep them as the user record still exists.
 
-            // 14. Delete friendships (sender or receiver)
-            var friendships = await _context.Friendships
-                .Where(f => f.SenderId == userId || f.ReceiverId == userId)
-                .ToListAsync();
-            _context.Friendships.RemoveRange(friendships);
-
+            // 13. Soft delete the user
+            user.IsDeleted = true;
+            user.Name = "User unavailable";
+            user.ProfilePictureUrl = null;
+            user.Bio = "This account has been deleted.";
+            
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
-
-            // 15. Delete the user via UserManager (removes Identity claims, roles, logins)
-            await _userManager.DeleteAsync(user);
         }
 
         // ==================== Analytics ====================

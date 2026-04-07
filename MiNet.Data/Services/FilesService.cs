@@ -1,4 +1,4 @@
-﻿using MiNet.Data.Helpers.Enums;
+using MiNet.Data.Helpers.Enums;
 using MiNet.Data.Models;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -14,7 +14,7 @@ namespace MiNet.Data.Services
     {
         public async Task<string> UploadImageAsync(IFormFile file, ImageFileType imageFileType)
         {
-            string filePathUpload = imageFileType switch
+            string folderPath = imageFileType switch
             {
                 ImageFileType.PostImage => Path.Combine("images", "posts"),
                 ImageFileType.StoryImage => Path.Combine("images", "stories"),
@@ -23,27 +23,30 @@ namespace MiNet.Data.Services
                 _ => throw new ArgumentException("Invalid file type")
             };
 
-            if (file != null && file.Length > 0)
+            return await UploadFileAsync(file, folderPath);
+        }
+
+        public async Task<string> UploadFileAsync(IFormFile file, string subFolder)
+        {
+            if (file == null || file.Length == 0)
+                return "";
+
+            // 10MB Limit
+            if (file.Length > 10 * 1024 * 1024)
+                throw new ArgumentException("File size exceeds 10MB limit.");
+
+            string rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", subFolder);
+            Directory.CreateDirectory(rootPath);
+
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            string fullPath = Path.Combine(rootPath, fileName);
+
+            using (var stream = new FileStream(fullPath, FileMode.Create))
             {
-                string rootFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                if (file.ContentType.Contains("image"))
-                {
-                    string rootFolderPathImages = Path.Combine(rootFolderPath, filePathUpload);
-                    Directory.CreateDirectory(rootFolderPathImages);
-
-                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    string filePath = Path.Combine(rootFolderPathImages, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                        await file.CopyToAsync(stream);
-
-                    //Set the URL to the newPost object
-
-                    return $"{filePathUpload}\\{fileName}";
-                }
+                await file.CopyToAsync(stream);
             }
 
-            return "";
+            return Path.Combine(subFolder, fileName).Replace("\\", "/");
         }
     }
 }
