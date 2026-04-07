@@ -1,0 +1,230 @@
+﻿@model User
+
+@{
+    ViewData["Title"] = "Chi Tiết Người Dùng";
+    var isLocked = Model.LockoutEnd.HasValue && Model.LockoutEnd > System.DateTimeOffset.UtcNow;
+}
+
+<main id="site__main" class="flex-1 overflow-y-auto">
+    <div class="p-6 bg-gray-50 min-h-screen">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="@Url.Action("Users")" class="text-blue-600 hover:text-blue-800 font-medium mb-4 inline-block">
+                ← Quay Lại Danh Sách
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">Chi Tiết Người Dùng</h1>
+        </div>
+
+        <div class="grid grid-cols-3 gap-6">
+
+            <!-- User Profile - Left Side -->
+            <div class="col-span-2">
+
+                <!-- User Info Card -->
+                <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+
+                    <!-- Cover Image -->
+                    <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+
+                    <!-- User Info -->
+                    <div class="px-6 pb-6">
+                        <div class="flex items-end -mt-16 mb-4">
+                            <img src="@(!string.IsNullOrEmpty(Model.ProfilePictureUrl) ?
+                                                                       Url.Content("~/" + Model.ProfilePictureUrl) :
+                                                                       Url.Content("~/images/avatar/user.png"))"
+                                 class="w-32 h-32 rounded-full border-4 border-white" />
+                            <div class="ml-4 flex-1">
+                                <h2 class="text-2xl font-bold text-gray-900">@Model.Name</h2>
+                                <p class="text-gray-600">@Model.Email</p>
+                            </div>
+                            <div>
+                                @if (isLocked)
+                                {
+                                    <span class="bg-red-100 text-red-800 px-4 py-2 rounded-full font-semibold">
+                                        🔒 Đã Khóa
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full font-semibold">
+                                        ✓ Hoạt Động
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.Bio))
+                        {
+                            <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p class="text-gray-700">@Model.Bio</p>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+
+                <!-- User Stats -->
+                <div class="grid grid-cols-3 gap-6 mb-6">
+
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Bài Viết</p>
+                                <p class="text-3xl font-bold text-blue-600">@(Model.Posts?.Count ?? 0)</p>
+                            </div>
+                            <ion-icon class="text-4xl text-blue-400" name="document-text-outline"></ion-icon>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Bình Luận</p>
+                                <p class="text-3xl font-bold text-green-600">@(Model.Comments?.Count ?? 0)</p>
+                            </div>
+                            <ion-icon class="text-4xl text-green-400" name="chatbubble-outline"></ion-icon>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Lượt Thích</p>
+                                <p class="text-3xl font-bold text-red-600">@(Model.Likes?.Count ?? 0)</p>
+                            </div>
+                            <ion-icon class="text-4xl text-red-400" name="heart-outline"></ion-icon>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- User Posts -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Bài Viết Gần Đây</h3>
+                    </div>
+
+                    <div class="divide-y divide-gray-200">
+                        @if (Model.Posts == null || Model.Posts.Count == 0)
+                        {
+                            <div class="p-6 text-center text-gray-500">
+                                Người dùng chưa có bài viết nào
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var post in Model.Posts.OrderByDescending(p => p.DateCreated).Take(5))
+                            {
+                                <div class="p-6 hover:bg-gray-50 transition">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <p class="text-gray-800">@post.Content.Substring(0, Math.Min(100, post.Content.Length))...</p>
+                                            <p class="text-xs text-gray-500 mt-2">@post.DateCreated.ToString("dd/MM/yyyy HH:mm")</p>
+                                        </div>
+                                        <a href="@Url.Action("PostDetails", new { postId = post.Id })"
+                                           class="text-blue-600 hover:text-blue-800 font-medium ml-4">
+                                            Xem
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- User Actions - Right Side -->
+            <div>
+
+                <!-- Account Status -->
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Thao Tác Tài Khoản</h4>
+
+                    @if (isLocked)
+                    {
+                        <form asp-controller="Admin" asp-action="UnlockUser" method="post" class="mb-3">
+                            <input type="hidden" name="userId" value="@Model.Id" />
+                            <button type="submit" class="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 font-semibold transition">
+                                <ion-icon name="lock-open-outline" class="mr-2"></ion-icon> Mở Khóa
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-controller="Admin" asp-action="LockUser" method="post" class="mb-3">
+                            <input type="hidden" name="userId" value="@Model.Id" />
+                            <button type="submit" class="w-full bg-orange-600 text-white px-4 py-3 rounded-lg hover:bg-orange-700 font-semibold transition">
+                                <ion-icon name="lock-closed-outline" class="mr-2"></ion-icon> Khóa
+                            </button>
+                        </form>
+                    }
+
+                    <form asp-controller="Admin" asp-action="DeleteUser" method="post" class="mb-3">
+                        <input type="hidden" name="userId" value="@Model.Id" />
+                        <button type="submit"
+                                onclick="return confirm('Xóa người dùng này? Tất cả bài viết sẽ bị xóa. Hành động này không thể hoàn tác!')"
+                                class="w-full bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 font-semibold transition">
+                            <ion-icon name="trash-outline" class="mr-2"></ion-icon> Xóa Người Dùng
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Account Info -->
+                <div class="bg-white rounded-lg shadow p-6 sticky top-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Thông Tin Tài Khoản</h4>
+                    <div class="space-y-4">
+
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-medium">ID Người Dùng</p>
+                            <p class="text-sm font-mono bg-gray-100 p-2 rounded mt-1">@Model.Id</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-medium">Email</p>
+                            <p class="text-sm break-all">@Model.Email</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-medium">Phone</p>
+                            <p class="text-sm">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Chưa cung cấp" : Model.PhoneNumber)</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-medium">Trạng Thái</p>
+                            <p class="text-sm">
+                                @if (Model.IsDeleted)
+                                {
+                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">Đã Xóa</span>
+                                }
+                                else if (isLocked)
+                                {
+                                    <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">Đã Khóa</span>
+                                }
+                                else
+                                {
+                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Hoạt Động</span>
+                                }
+                            </p>
+                        </div>
+
+                        @if (isLocked)
+                        {
+                            <div class="bg-orange-50 border border-orange-200 p-3 rounded-lg">
+                                <p class="text-sm text-orange-800">
+                                    <ion-icon name="warning-outline" class="mr-1"></ion-icon>
+                                    Tài khoản này đã bị khóa
+                                </p>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</main>

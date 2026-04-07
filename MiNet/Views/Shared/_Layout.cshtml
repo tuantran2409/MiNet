@@ -26,7 +26,14 @@
                 <partial name="Navigation/_TopBarAdmin" />
             }
         }
-
+        <!-- Admin Menu Item (chỉ hiển thị với admin) -->
+        @if (User.IsInRole("admin"))
+        {
+            <a href="@Url.Action("Index", "Admin")" class="nav-link">
+                <ion-icon name="settings-outline"></ion-icon>
+                Admin
+            </a>
+        }
         @RenderBody()
     </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

@@ -1,0 +1,191 @@
+﻿@model Post
+
+@{
+    ViewData["Title"] = "Chi Tiết Bài Viết";
+    var reports = ViewBag.Reports as List<MiNet.Data.Models.Report>;
+}
+
+<main id="site__main" class="flex-1 overflow-y-auto">
+    <div class="p-6 bg-gray-50 min-h-screen">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="@Url.Action("ReportedPosts")" class="text-blue-600 hover:text-blue-800 font-medium mb-4 inline-block">
+                ← Quay Lại Danh Sách
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">Chi Tiết Bài Viết</h1>
+            <p class="text-gray-600 mt-2">ID: @Model.Id | Người Tạo: @Model.User.Name</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-6">
+
+            <!-- Post Content - Left Side (2 columns) -->
+            <div class="col-span-2">
+
+                <!-- Post Card -->
+                <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+
+                    <!-- Post Header -->
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center flex-1">
+                                <img src="@(!string.IsNullOrEmpty(Model.User.ProfilePictureUrl) ?
+                                                                               Url.Content("~/" + Model.User.ProfilePictureUrl) :
+                                                                               Url.Content("~/images/avatar/user.png"))"
+                                     class="w-14 h-14 rounded-full mr-4" />
+                                <div>
+                                    <a href="@Url.Action("UserDetails", new { userId = Model.User.Id })"
+                                       class="font-semibold text-gray-900 hover:text-blue-600">
+                                        @Model.User.Name
+                                    </a>
+                                    <p class="text-sm text-gray-500">@Model.DateCreated.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                                    <p class="text-xs text-gray-400 mt-1">User ID: @Model.User.Id</p>
+                                </div>
+                            </div>
+                            <div class="bg-red-100 px-4 py-2 rounded-lg">
+                                <p class="text-red-800 font-bold text-lg">⚠️ @Model.NrOfReports</p>
+                                <p class="text-red-600 text-xs font-medium">báo cáo</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post Content -->
+                    <div class="p-6 border-b border-gray-200">
+                        <p class="text-gray-800 text-lg leading-relaxed">@Model.Content</p>
+
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <div class="mt-6">
+                                <img src="@Url.Content("~/" + Model.ImageUrl)" class="w-full rounded-lg shadow" />
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Post Stats -->
+                    <div class="p-6 bg-gray-50 border-b border-gray-200 grid grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">Lượt Thích</p>
+                            <p class="text-2xl font-bold text-red-600">@(Model.Likes?.Count ?? 0)</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">Bình Luận</p>
+                            <p class="text-2xl font-bold text-blue-600">@(Model.Comments?.Count ?? 0)</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-gray-600 text-sm">Yêu Thích</p>
+                            <p class="text-2xl font-bold text-green-600">@(Model.Favorites?.Count ?? 0)</p>
+                        </div>
+                    </div>
+
+                    <!-- Post Status -->
+                    <div class="p-6 flex gap-3">
+                        @if (Model.IsDeleted)
+                        {
+                            <div class="flex-1 bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                                <p class="text-red-800 font-semibold">
+                                    <ion-icon name="checkmark-outline"></ion-icon> Đã Xóa
+                                </p>
+                                <p class="text-red-600 text-sm">Bài viết này đã bị xóa khỏi hệ thống</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <form asp-controller="Admin" asp-action="ApproveReport" method="post" class="flex-1">
+                                <input type="hidden" name="postId" value="@Model.Id" />
+                                <button type="submit"
+                                        onclick="return confirm('Xóa bài viết này? Hành động này không thể hoàn tác!')"
+                                        class="w-full bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 font-semibold transition">
+                                    <ion-icon name="trash-outline" class="mr-2"></ion-icon> Xóa Bài Viết
+                                </button>
+                            </form>
+
+                            <form asp-controller="Admin" asp-action="RejectReport" method="post" class="flex-1">
+                                <input type="hidden" name="postId" value="@Model.Id" />
+                                <button type="submit" class="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 font-semibold transition">
+                                    <ion-icon name="close-outline" class="mr-2"></ion-icon> Từ Chối Báo Cáo
+                                </button>
+                            </form>
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Reports List - Right Side (1 column) -->
+            <div>
+                <div class="bg-white rounded-lg shadow overflow-hidden sticky top-6">
+                    <div class="p-4 bg-gray-50 border-b border-gray-200">
+                        <h3 class="font-semibold text-gray-900">
+                            <ion-icon name="flag-outline"></ion-icon> Báo Cáo (@(reports?.Count ?? 0))
+                        </h3>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto">
+                        @if (reports == null || reports.Count == 0)
+                        {
+                            <div class="p-6 text-center text-gray-500">
+                                <p>Không có báo cáo nào</p>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var report in reports)
+                            {
+                                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 transition">
+                                    <div class="flex items-start mb-2">
+                                        <img src="@(!string.IsNullOrEmpty(report.User.ProfilePictureUrl) ?
+                                                                                               Url.Content("~/" + report.User.ProfilePictureUrl) :
+                                                                                               Url.Content("~/images/avatar/user.png"))"
+                                     class="w-8 h-8 rounded-full mr-2" />
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">@report.User.Name</p>
+                                    <p class="text-xs text-gray-500">@report.DateCreated.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-600 bg-gray-100 p-2 rounded">
+                                Báo cáo từ người dùng ID: @report.UserId
+                            </p>
+                        </div>
+                                                }
+                        }
+                    </div>
+                </div>
+
+                <!-- Quick Info Box -->
+                <div class="bg-white rounded-lg shadow p-4 mt-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Thông Tin Nhanh</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Mã Bài Viết</p>
+                            <p class="text-sm font-medium text-gray-900">@Model.Id</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Tác Giả</p>
+                            <p class="text-sm font-medium text-gray-900">@Model.User.Name</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Ngày Tạo</p>
+                            <p class="text-sm font-medium text-gray-900">@Model.DateCreated.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Trạng Thái</p>
+                            <p class="text-sm font-medium">
+                                @if (Model.IsDeleted)
+                                {
+                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">Đã Xóa</span>
+                                }
+                                else
+                                {
+                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Hoạt Động</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</main>

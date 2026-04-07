@@ -1,0 +1,86 @@
+﻿@model List<Post>
+
+@{
+    ViewData["Title"] = "Bài Viết Bị Báo Cáo";
+}
+
+<main id="site__main" class="flex-1 overflow-y-auto">
+    <div class="p-6 bg-gray-50 min-h-screen">
+
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Bài Viết Bị Báo Cáo</h1>
+            <p class="text-gray-600 mt-2">@Model.Count bài viết đang chờ xử lý</p>
+        </div>
+
+        @if (Model.Count == 0)
+        {
+            <div class="bg-white rounded-lg shadow p-12 text-center">
+                <ion-icon class="text-6xl text-green-400" name="checkmark-circle-outline"></ion-icon>
+                <p class="text-gray-600 text-lg mt-4">Không có bài viết nào bị báo cáo</p>
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                @foreach (var post in Model)
+                {
+                    <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
+
+                        <!-- Post Header -->
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center">
+                                    <img src="@(!string.IsNullOrEmpty(post.User.ProfilePictureUrl) ?
+                                                                                       Url.Content("~/" + post.User.ProfilePictureUrl) :
+                                                                                       Url.Content("~/images/avatar/user.png"))"
+                                 class="w-12 h-12 rounded-full mr-4" />
+                            <div>
+                                <h3 class="font-semibold text-gray-900">@post.User.Name</h3>
+                                <p class="text-sm text-gray-500">@post.DateCreated.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center bg-red-100 px-3 py-1 rounded-full">
+                            <span class="text-red-800 font-semibold text-sm">⚠️ @post.NrOfReports báo cáo</span>
+                        </div>
+                    </div>
+                </div>
+
+                        <!-- Post Content -->
+                        <div class="p-6">
+                            <p class="text-gray-800">@post.Content</p>
+
+                    @if (!string.IsNullOrEmpty(post.ImageUrl))
+                            {
+                                <img src="@Url.Content("~/" + post.ImageUrl)" class="w-full rounded-lg mt-4" />
+                            }
+                        </div>
+
+                        <!-- Post Footer -->
+                        <div class="p-6 bg-gray-50 border-t border-gray-200 flex gap-3">
+                            <a href="@Url.Action("PostDetails", new { postId = post.Id })" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center font-medium transition">
+                                Chi Tiết
+                            </a>
+
+                            <form asp-controller="Admin" asp-action="ApproveReport" method="post" class="flex-1">
+                                <input type="hidden" name="postId" value="@post.Id" />
+                                <button type="submit" onclick="return confirm('Bạn chắc chắn muốn xóa bài viết này?')"
+                                        class="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium transition">
+                                    Xóa Bài
+                                </button>
+                            </form>
+
+                            <form asp-controller="Admin" asp-action="RejectReport" method="post" class="flex-1">
+                                <input type="hidden" name="postId" value="@post.Id" />
+                                <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium transition">
+                                    Từ Chối Báo Cáo
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                }
+            </div>
+        }
+
+    </div>
+</main>
