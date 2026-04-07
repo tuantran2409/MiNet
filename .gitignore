@@ -383,7 +383,12 @@ MiNet/wwwroot/attachments/chat/*
 *.swp
 *.bak
 
-# OS Files
-Thumbs.db
-Desktop.ini
-.DS_Store
+# Testing & Debugging
+test_*.py
+*.test.js
+*.spec.js
+tests/bin/
+tests/obj/
+TestResults/
+*.log
+/tmp/
