@@ -52,7 +52,11 @@
                                         <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">Hoạt Động</span>
                                     }
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-900">@(user.Posts?.Count ?? 0)</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">
+                                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                                        @(user.Posts?.Count ?? 0)
+                                    </span>
+                                </td>
                                 <td class="px-6 py-4">
                                     <a href="@Url.Action("UserDetails", new { userId = user.Id })" class="text-blue-600 hover:text-blue-800 font-medium text-sm mr-4">
                                         Chi Tiết

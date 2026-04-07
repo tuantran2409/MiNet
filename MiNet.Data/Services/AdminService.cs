@@ -46,7 +46,8 @@ namespace MiNet.Data.Services
         {
             var posts = await _context.Posts
                 .Include(n => n.User)
-                .Where(n => n.NrOfReports > 5 && !n.IsDeleted)
+                .Include(n => n.Reports)
+                .Where(n => n.NrOfReports > 0 && !n.IsDeleted)
                 .OrderByDescending(p => p.NrOfReports)
                 .ToListAsync();
 
@@ -105,6 +106,8 @@ namespace MiNet.Data.Services
         {
             return await _context.Users
                 .Include(u => u.Posts)
+                .Include(u => u.Comments) 
+                .Include(u => u.Likes)  
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }
 
@@ -163,11 +166,6 @@ namespace MiNet.Data.Services
             return await _context.Reports.CountAsync();
         }
 
-        public async Task<int> GetOnlineUsersCountAsync()
-        {
-            // TODO: Cần implement tracking online status
-            return 0;
-        }
 
         public async Task<List<Post>> GetTopPostsAsync(int count = 10)
         {
@@ -178,6 +176,16 @@ namespace MiNet.Data.Services
                 .OrderByDescending(p => p.Likes.Count)
                 .Take(count)
                 .ToListAsync();
+        }
+
+        public Task<int> GetOnlineUsersCountAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ApprovePostAsync(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

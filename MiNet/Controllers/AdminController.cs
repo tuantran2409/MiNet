@@ -16,10 +16,12 @@ namespace MiNet.Controllers
         private readonly IAdminService _adminService;
         private readonly UserManager<User> _userManager;
         private readonly AppDbContext _context;
-        public AdminController(IAdminService adminService, UserManager<User> userManager)
+
+        public AdminController(IAdminService adminService, UserManager<User> userManager, AppDbContext context)
         {
             _adminService = adminService;
             _userManager = userManager;
+            _context = context;  
         }
 
         // ==================== Dashboard ====================
@@ -57,6 +59,7 @@ namespace MiNet.Controllers
         public async Task<IActionResult> ApproveReport(int postId)
         {
             await _adminService.ApproveReportAsync(postId);
+            TempData["SuccessMessage"] = "✓ Bài viết đã bị xóa thành công!";
             return RedirectToAction("ReportedPosts");
         }
 
@@ -64,21 +67,31 @@ namespace MiNet.Controllers
         public async Task<IActionResult> RejectReport(int postId)
         {
             await _adminService.RejectReportAsync(postId);
+            TempData["SuccessMessage"] = "✓ Báo cáo đã bị từ chối!";
             return RedirectToAction("ReportedPosts");
         }
 
         // ==================== User Management ====================
         public async Task<IActionResult> Users()
         {
-            var users = await _adminService.GetAllUsersAsync();
+            var users = await _context.Users
+                .Include(u => u.Posts) 
+                .OrderByDescending(u => u.Id)
+                .ToListAsync();
             return View(users);
         }
 
         public async Task<IActionResult> UserDetails(int userId)
         {
-            var user = await _adminService.GetUserByIdAsync(userId);
+            var user = await _context.Users
+                .Include(u => u.Posts)     
+                .Include(u => u.Comments)   
+                .Include(u => u.Likes)    
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
             if (user == null)
                 return NotFound();
+
             return View(user);
         }
 
@@ -100,6 +113,7 @@ namespace MiNet.Controllers
         public async Task<IActionResult> DeleteUser(int userId)
         {
             await _adminService.DeleteUserAsync(userId);
+            TempData["SuccessMessage"] = "✓ Người dùng đã bị xóa!";
             return RedirectToAction("Users");
         }
 
@@ -116,5 +130,6 @@ namespace MiNet.Controllers
             ViewBag.stats = stats;
             return View();
         }
+
     }
 }

@@ -31,6 +31,7 @@ namespace MiNet.Data.Services
         Task<int> GetTotalReportsCountAsync();
         Task<int> GetOnlineUsersCountAsync();
         Task<List<Post>> GetTopPostsAsync(int count = 10);
+        Task ApprovePostAsync(int id);
     }
 
     // ViewModel cho Dashboard
