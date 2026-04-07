@@ -374,7 +374,7 @@ MiNet/wwwroot/images/avatars/*
 MiNet/wwwroot/images/stories/*
 MiNet/wwwroot/images/posts/*
 MiNet/wwwroot/uploads/*
-MiNet/wwwroot/attachments/*
+MiNet/wwwroot/attachments/chat/*
 !*/.gitkeep
 
 # IDE Settings
