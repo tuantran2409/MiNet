@@ -1,75 +1,151 @@
-﻿@model List<Post>
+﻿@using MiNet.Data.Services
+@model AdminDashboardViewModel
 
-<main id="site__main" class="p-2.5 h-[calc(100vh-var(--m-top))] mt-[--m-top]">
-    <div class="w-full">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-[90%] mx-auto">
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
 
-            @foreach (var post in Model)
-            {
-                TimeSpan timeSpanSincePosted = DateTime.UtcNow.Subtract(post.DateCreated);
+<main id="site__main" class="flex-1 overflow-y-auto">
+    <div class="p-6 bg-gray-50 min-h-screen">
 
-                string displayTime = timeSpanSincePosted switch
-                {
-                    var t when t.TotalDays >= 1 => $"{(int)t.TotalDays}d ago",
-                    var t when t.TotalHours >= 1 => $"{(int)t.TotalHours}h ago",
-                    var t when t.TotalMinutes >= 1 => $"{(int)t.TotalMinutes}m ago",
-                    _ => "Just now"
-                };
-
-                <div class="bg-white rounded-xl shadow-sm text-sm font-medium border1 h-full flex flex-col">
-
-                    @* Post heading *@
-                    <div class="flex gap-3 sm:p-4 p-2.5 text-sm font-medium">
-                        <a>
-                            <img src="@(!string.IsNullOrEmpty(post.User.ProfilePictureUrl) ?
-                            Url.Content("~/" + post.User.ProfilePictureUrl) :
-                            Url.Content("~/images/avatar/user.png"))" class="w-9 h-9 rounded-full" />
-                        </a>
-
-                        <div class="flex-1">
-                            <a>
-                                <h4 class="text-black">@post.User.Name</h4>
-                                <div class="text-xs text-gray-500/80" title="@post.DateCreated.ToString("MM/dd/yyyy HH:mm")"> @displayTime </div>
-                            </a>
-                        </div>
-
-                        <div class="flex -mr-1 space-x-2">
-                            <form asp-controller="Admin" asp-action="RejectReport" class="inline">
-                                <input type="hidden" name="postId" value="@post.Id" />
-                                <button type="submit" class="button-icon w-8 h-8 text-red-500 hover:text-red-700">
-                                    <ion-icon class="text-xl" name="close-outline"></ion-icon>
-                                </button>
-                            </form>
-
-                            <form asp-controller="Admin" asp-action="ApproveReport" class="inline">
-                                <input type="hidden" name="postId" value="@post.Id" />
-                                <button type="submit" class="button-icon w-8 h-8 text-green-500 hover:text-green-700">
-                                    <ion-icon class="text-xl" name="checkmark-outline"></ion-icon>
-                                </button>
-                            </form>
-                        </div>
-
-                    </div>
-
-                    @* Post content *@
-                    <a>
-                        <div class="sm:px-4 p-2.5 pt-0 w-full flex-1">
-                            <p class="font-normal">
-                                @post.Content
-                            </p>
-                        </div>
-                    </a>
-
-                    @if (!string.IsNullOrEmpty(post.ImageUrl))
-                    {
-                        <a>
-                            <div class="relative w-full h-full">
-                                <img src="@Url.Content("~/" + post.ImageUrl)" class="sm:rounded-lg w-full h-full object-cover rounded-b-xl" />
-                            </div>
-                        </a>
-                    }
-                </div>
-            }
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p class="text-gray-600 mt-2">Quản lý nền tảng MiNet</p>
         </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+            <!-- Total Users Card -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-gray-500 text-sm font-medium">Tổng Người Dùng</p>
+                        <p class="text-3xl font-bold text-gray-900 mt-2">@Model.TotalUsers</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <ion-icon class="text-2xl text-blue-600" name="people-outline"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Posts Card -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-gray-500 text-sm font-medium">Tổng Bài Viết</p>
+                        <p class="text-3xl font-bold text-gray-900 mt-2">@Model.TotalPosts</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <ion-icon class="text-2xl text-green-600" name="document-text-outline"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Reports Card -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-gray-500 text-sm font-medium">Tổng Báo Cáo</p>
+                        <p class="text-3xl font-bold text-gray-900 mt-2">@Model.TotalReports</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <ion-icon class="text-2xl text-red-600" name="warning-outline"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Online Users Card -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-gray-500 text-sm font-medium">Đang Online</p>
+                        <p class="text-3xl font-bold text-gray-900 mt-2">@Model.OnlineUsers</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <ion-icon class="text-2xl text-purple-600" name="radio-button-on-outline"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+            <a href="@Url.Action("ReportedPosts")" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Bài Viết Bị Báo Cáo</h3>
+                        <p class="text-2xl font-bold text-red-600 mt-2">@Model.ReportedPosts.Count</p>
+                    </div>
+                    <ion-icon class="text-4xl text-red-400" name="flag-outline"></ion-icon>
+                </div>
+            </a>
+
+            <a href="@Url.Action("Users")" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Quản Lý Người Dùng</h3>
+                        <p class="text-2xl font-bold text-blue-600 mt-2">@Model.TotalUsers</p>
+                    </div>
+                    <ion-icon class="text-4xl text-blue-400" name="person-circle-outline"></ion-icon>
+                </div>
+            </a>
+
+            <a href="@Url.Action("Analytics")" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Analytics</h3>
+                        <p class="text-2xl font-bold text-green-600 mt-2">Chi Tiết</p>
+                    </div>
+                    <ion-icon class="text-4xl text-green-400" name="bar-chart-outline"></ion-icon>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Top Posts -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">Bài Viết Phổ Biến Nhất</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Người Tạo</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Nội Dung</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Lượt Thích</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Thời Gian</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var post in Model.TopPosts)
+                        {
+                            var likesCount = post.Likes?.Count ?? 0;
+                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900">
+                                    <div class="flex items-center">
+                                        <img src="@(!string.IsNullOrEmpty(post.User.ProfilePictureUrl) ?
+                                                                                               Url.Content("~/" + post.User.ProfilePictureUrl) :
+                                                                                               Url.Content("~/images/avatar/user.png"))"
+                                         class="w-8 h-8 rounded-full mr-3" />
+                                    <span>@post.User.Name</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">@post.Content.Substring(0, Math.Min(50, post.Content.Length))...</td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">❤️ @likesCount</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">@post.DateCreated.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                                                }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </main>

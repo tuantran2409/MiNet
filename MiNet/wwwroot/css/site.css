@@ -23,3 +23,49 @@ form > button.icon-link, button.delete-post-btn{
     form > button.icon-link > ion-icon, button.delete-post-btn > ion-icon{
         margin-right: 8px; /* Adds space between the icon and text */
     }
+/* Admin Dashboard Styling */
+.admin-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+
+    .admin-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+.admin-stat {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1f2937;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.admin-badge {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
