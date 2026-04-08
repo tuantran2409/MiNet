@@ -63,7 +63,8 @@
                                 }
                                 else
                                 {
-                                    <img src="@(otherMember?.ProfilePictureUrl ?? "/images/avatars/user.png")" 
+                                    var avatarUrl = string.IsNullOrEmpty(otherMember?.ProfilePictureUrl) ? "/images/avatar/user.png" : "/" + otherMember.ProfilePictureUrl.TrimStart('/');
+                                    <img src="@Url.Content("~" + avatarUrl)" 
                                          class="w-12 h-12 rounded-2xl object-cover shadow-sm bg-gray-200" 
                                          alt="@(otherMember?.Name ?? "User")">
                                     @if (otherMember != null && !otherMember.IsDeleted)
