@@ -1,15 +1,15 @@
 ﻿@model List<User>
 
 @{
-    ViewData["Title"] = "Quản Lý Người Dùng";
+    ViewData["Title"] = "User Management";
 }
 
 <main id="site__main" class="flex-1 overflow-y-auto">
     <div class="p-6 bg-gray-50 min-h-screen">
 
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Quản Lý Người Dùng</h1>
-            <p class="text-gray-600 mt-2">Tổng cộng @Model.Count người dùng</p>
+            <h1 class="text-3xl font-bold text-gray-900">User Management</h1>
+            <p class="text-gray-600 mt-2">Total @Model.Count users</p>
         </div>
 
         <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -17,11 +17,11 @@
                 <table class="w-full">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Người Dùng</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">User</th>
                             <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Trạng Thái</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Bài Viết</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Hành Động</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Posts</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -45,11 +45,11 @@
                             <td class="px-6 py-4">
                                 @if (isLocked)
                                     {
-                                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium">Đã Khóa</span>
+                                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium">Locked</span>
                                     }
                                     else
                                     {
-                                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">Hoạt Động</span>
+                                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">Active</span>
                                     }
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-900">
@@ -59,21 +59,21 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <a href="@Url.Action("UserDetails", new { userId = user.Id })" class="text-blue-600 hover:text-blue-800 font-medium text-sm mr-4">
-                                        Chi Tiết
+                                        View Details
                                     </a>
 
                                     @if (isLocked)
                                     {
                                         <form asp-controller="Admin" asp-action="UnlockUser" method="post" class="inline">
                                             <input type="hidden" name="userId" value="@user.Id" />
-                                            <button type="submit" class="text-green-600 hover:text-green-800 font-medium text-sm">Mở Khóa</button>
+                                            <button type="submit" class="text-green-600 hover:text-green-800 font-medium text-sm">Unlock</button>
                                         </form>
                                     }
                                     else
                                     {
                                         <form asp-controller="Admin" asp-action="LockUser" method="post" class="inline">
                                             <input type="hidden" name="userId" value="@user.Id" />
-                                            <button type="submit" class="text-red-600 hover:text-red-800 font-medium text-sm">Khóa</button>
+                                            <button type="submit" class="text-red-600 hover:text-red-800 font-medium text-sm">Lock</button>
                                         </form>
                                     }
                                 </td>

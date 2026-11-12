@@ -26,7 +26,7 @@
                 <partial name="Navigation/_TopBarAdmin" />
             }
         }
-        <!-- Admin Menu Item (chỉ hiển thị với admin) -->
+        <!-- Admin Menu Item (admins only) -->
         @if (User.IsInRole("admin"))
         {
             <a href="@Url.Action("Index", "Admin")" class="nav-link">

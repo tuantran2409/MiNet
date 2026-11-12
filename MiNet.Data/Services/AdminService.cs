@@ -23,7 +23,7 @@ namespace MiNet.Data.Services
         // ==================== Dashboard ====================
         public async Task<AdminDashboardViewModel> GetDashboardStatsAsync()
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var monthAgo = now.AddMonths(-1);
 
             var model = new AdminDashboardViewModel
@@ -31,7 +31,7 @@ namespace MiNet.Data.Services
                 TotalUsers = await _context.Users.CountAsync(),
                 TotalPosts = await _context.Posts.Where(p => !p.IsDeleted).CountAsync(),
                 TotalReports = await _context.Reports.CountAsync(),
-                OnlineUsers = 0, // Sẽ cập nhật nếu có tracking online status
+                OnlineUsers = 0, // Update once online-status tracking exists
                 ReportedPosts = await GetReportedPostsAsync(),
                 TopPosts = await GetTopPostsAsync(5),
                 NewUsersThisMonth = await _context.Users
@@ -120,7 +120,7 @@ namespace MiNet.Data.Services
             var user = await _context.Users.FindAsync(userId);
             if (user != null)
             {
-                user.LockoutEnd = DateTimeOffset.UtcNow.AddYears(100); // Khóa vĩnh viễn
+                user.LockoutEnd = DateTimeOffset.UtcNow.AddYears(100); // Permanent lock
                 await _context.SaveChangesAsync();
             }
         }

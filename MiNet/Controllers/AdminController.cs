@@ -59,7 +59,7 @@ namespace MiNet.Controllers
         public async Task<IActionResult> ApproveReport(int postId)
         {
             await _adminService.ApproveReportAsync(postId);
-            TempData["SuccessMessage"] = "✓ Bài viết đã bị xóa thành công!";
+            TempData["SuccessMessage"] = "✓ Post deleted successfully.";
             return RedirectToAction("ReportedPosts");
         }
 
@@ -67,7 +67,7 @@ namespace MiNet.Controllers
         public async Task<IActionResult> RejectReport(int postId)
         {
             await _adminService.RejectReportAsync(postId);
-            TempData["SuccessMessage"] = "✓ Báo cáo đã bị từ chối!";
+            TempData["SuccessMessage"] = "✓ Report dismissed.";
             return RedirectToAction("ReportedPosts");
         }
 

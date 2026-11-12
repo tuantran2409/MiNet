@@ -70,6 +70,21 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddSignalR(); // Register SignalR services
 
+// GitHub Search API for the Explore page (typed HttpClient + 15-minute cache inside GitHubService)
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IGitHubService, GitHubService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.github.com/");
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("MiNet-Explore/1.0");
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+    client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+
+    // Optional token: set it in a personal appsettings file or via the GitHubApi__Token env var
+    var gitHubToken = builder.Configuration["GitHubApi:Token"];
+    if (!string.IsNullOrWhiteSpace(gitHubToken))
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", gitHubToken);
+});
+
 var app = builder.Build();
 
 //Seed the Database with initial data

@@ -11,7 +11,7 @@
         <!-- Header -->
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p class="text-gray-600 mt-2">Quản lý nền tảng MiNet</p>
+            <p class="text-gray-600 mt-2">Manage the MiNet platform</p>
         </div>
 
         <!-- Statistics Cards -->
@@ -21,7 +21,7 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-medium">Tổng Người Dùng</p>
+                        <p class="text-gray-500 text-sm font-medium">Total Users</p>
                         <p class="text-3xl font-bold text-gray-900 mt-2">@Model.TotalUsers</p>
                     </div>
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -34,7 +34,7 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-medium">Tổng Bài Viết</p>
+                        <p class="text-gray-500 text-sm font-medium">Total Posts</p>
                         <p class="text-3xl font-bold text-gray-900 mt-2">@Model.TotalPosts</p>
                     </div>
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -47,7 +47,7 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-medium">Tổng Báo Cáo</p>
+                        <p class="text-gray-500 text-sm font-medium">Total Reports</p>
                         <p class="text-3xl font-bold text-gray-900 mt-2">@Model.TotalReports</p>
                     </div>
                     <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -60,7 +60,7 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-medium">Đang Online</p>
+                        <p class="text-gray-500 text-sm font-medium">Online Now</p>
                         <p class="text-3xl font-bold text-gray-900 mt-2">@Model.OnlineUsers</p>
                     </div>
                     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -77,7 +77,7 @@
             <a href="@Url.Action("ReportedPosts")" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Bài Viết Bị Báo Cáo</h3>
+                        <h3 class="text-lg font-semibold text-gray-900">Reported Posts</h3>
                         <p class="text-2xl font-bold text-red-600 mt-2">@Model.ReportedPosts.Count</p>
                     </div>
                     <ion-icon class="text-4xl text-red-400" name="flag-outline"></ion-icon>
@@ -87,7 +87,7 @@
             <a href="@Url.Action("Users")" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Quản Lý Người Dùng</h3>
+                        <h3 class="text-lg font-semibold text-gray-900">User Management</h3>
                         <p class="text-2xl font-bold text-blue-600 mt-2">@Model.TotalUsers</p>
                     </div>
                     <ion-icon class="text-4xl text-blue-400" name="person-circle-outline"></ion-icon>
@@ -98,7 +98,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-lg font-semibold text-gray-900">Analytics</h3>
-                        <p class="text-2xl font-bold text-green-600 mt-2">Chi Tiết</p>
+                        <p class="text-2xl font-bold text-green-600 mt-2">View Details</p>
                     </div>
                     <ion-icon class="text-4xl text-green-400" name="bar-chart-outline"></ion-icon>
                 </div>
@@ -109,16 +109,16 @@
         <!-- Top Posts -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <div class="p-6 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-900">Bài Viết Phổ Biến Nhất</h2>
+                <h2 class="text-xl font-semibold text-gray-900">Most Popular Posts</h2>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Người Tạo</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Nội Dung</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Lượt Thích</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Thời Gian</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Author</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Content</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Likes</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Date</th>
                         </tr>
                     </thead>
                     <tbody>

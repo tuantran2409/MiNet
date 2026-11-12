@@ -49,7 +49,7 @@ namespace MiNet.Data.Services
             {
                 Title = title,
                 IsGroup = isGroup,
-                DateCreated = DateTime.UtcNow
+                DateCreated = DateTime.Now
             };
 
             await _context.Conversations.AddAsync(conversation);
@@ -59,7 +59,7 @@ namespace MiNet.Data.Services
             {
                 ConversationId = conversation.Id,
                 UserId = userId,
-                JoinedDate = DateTime.UtcNow
+                JoinedDate = DateTime.Now
             }).ToList();
 
             await _context.ConversationMembers.AddRangeAsync(members);
@@ -77,7 +77,7 @@ namespace MiNet.Data.Services
                 Content = content,
                 Type = type,
                 FileUrl = fileUrl,
-                DateSent = DateTime.UtcNow
+                DateSent = DateTime.Now
             };
 
             await _context.Messages.AddAsync(message);
