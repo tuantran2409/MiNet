@@ -31,7 +31,7 @@
                              alt="Avatar">
                         @if (!isUserUnavailable)
                         {
-                            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                            <div id="userStatusDot" class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-300 border-2 border-white rounded-full transition-all"></div>
                         }
                     }
                 </div>
@@ -40,10 +40,10 @@
                     <h2 class="font-bold text-gray-900 leading-tight">
                         @(Model.Conversation.IsGroup ? (Model.Conversation.Title ?? "Group Chat") : (otherUser?.Name ?? "User unavailable"))
                     </h2>
-                    <p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">
+                    <p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider flex items-center gap-1.5">
                         @if (isUserUnavailable) { <span class="text-red-400">Account Deleted</span> }
                         else if (Model.Conversation.IsGroup) { <span>@Model.Conversation.Members.Count members</span> }
-                        else { <span class="text-green-500">Active Now</span> }
+                        else { <span id="userStatusText" class="text-gray-400 transition-colors">Offline</span> }
                     </p>
                 </div>
             </div>
@@ -138,6 +138,16 @@
 
         <!-- Input Area -->
         <div class="px-6 py-4 bg-white/80 border-t border-gray-100 backdrop-blur-md flex flex-col gap-2 relative">
+            <!-- Real-time Typing Indicator -->
+            <div id="typingIndicator" class="hidden px-2 py-1 text-xs text-blue-600 font-medium italic flex items-center gap-2 animate-fadeSlideIn">
+                <span class="inline-flex gap-1 items-center">
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" style="animation-delay: 150ms"></span>
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" style="animation-delay: 300ms"></span>
+                </span>
+                <span id="typingIndicatorText">Đang soạn tin nhắn...</span>
+            </div>
+
             <!-- File upload preview -->
             <div id="uploadPreview" style="display: none;" class="w-full p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center justify-between animate-fadeSlideIn">
                 <div class="flex items-center gap-3">
@@ -197,6 +207,7 @@
 <script>
     const conversationId = @Model.Conversation.Id;
     const currentUserId = @Model.CurrentUserId;
+    const otherUserId = @(otherUser?.Id ?? 0);
     let selectedFile = null;
     let selectedFileUrl = null;
     let selectedFileType = 0; // 0=Text, 1=Image, 2=File
@@ -230,10 +241,56 @@
         scrollToBottom();
     });
 
+    connection.on("UserTyping", function (data) {
+        if (data.userId === currentUserId || data.conversationId !== conversationId) return;
+        const indicator = document.getElementById("typingIndicator");
+        const indicatorText = document.getElementById("typingIndicatorText");
+        if (!indicator) return;
+
+        if (data.isTyping) {
+            if (indicatorText) indicatorText.textContent = `${data.userName} đang soạn tin nhắn...`;
+            indicator.classList.remove("hidden");
+        } else {
+            indicator.classList.add("hidden");
+        }
+    });
+
+    connection.on("UserStatusChanged", function (data) {
+        if (otherUserId > 0 && data.userId === otherUserId) {
+            updateOtherUserPresence(data.isOnline);
+        }
+    });
+
+    function updateOtherUserPresence(isOnline) {
+        const dot = document.getElementById("userStatusDot");
+        const text = document.getElementById("userStatusText");
+        if (dot) {
+            if (isOnline) {
+                dot.className = "absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full ring-2 ring-emerald-500/20";
+            } else {
+                dot.className = "absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-300 border-2 border-white rounded-full";
+            }
+        }
+        if (text) {
+            if (isOnline) {
+                text.className = "text-emerald-500 font-semibold";
+                text.textContent = "Online";
+            } else {
+                text.className = "text-gray-400";
+                text.textContent = "Offline";
+            }
+        }
+    }
+
     connection.start()
         .then(() => {
             isConnected = true;
             console.log("Connected to chat hub");
+            if (otherUserId > 0) {
+                connection.invoke("CheckUserOnline", otherUserId)
+                    .then(isOnline => updateOtherUserPresence(isOnline))
+                    .catch(console.error);
+            }
             return connection.invoke("JoinConversation", conversationId);
         })
         .catch(err => {
@@ -242,7 +299,33 @@
         });
 
     // 2. Message Logic
+    let typingTimeout = null;
+    let isCurrentlyTyping = false;
+
+    const messageInputElem = document.getElementById("messageInput");
+    if (messageInputElem) {
+        messageInputElem.addEventListener("input", function() {
+            if (!isConnected) return;
+            if (!isCurrentlyTyping && messageInputElem.value.trim().length > 0) {
+                isCurrentlyTyping = true;
+                connection.invoke("SendTyping", conversationId, true).catch(console.error);
+            }
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                if (isCurrentlyTyping) {
+                    isCurrentlyTyping = false;
+                    connection.invoke("SendTyping", conversationId, false).catch(console.error);
+                }
+            }, 2500);
+        });
+    }
+
     async function sendMessage() {
+        if (isCurrentlyTyping) {
+            isCurrentlyTyping = false;
+            clearTimeout(typingTimeout);
+            connection.invoke("SendTyping", conversationId, false).catch(console.error);
+        }
         const input = document.getElementById("messageInput");
         const content = input.value.trim();
 

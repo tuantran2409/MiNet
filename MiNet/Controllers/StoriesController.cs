@@ -66,5 +66,15 @@ namespace MiNet.Controllers
                 avatar = v.ProfilePictureUrl
             }));
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleHighlight(int storyId, string? title)
+        {
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return Unauthorized();
+
+            bool isHighlight = await _storiesService.ToggleStoryHighlightAsync(storyId, title);
+            return Json(new { success = true, isHighlight });
+        }
     }
 }

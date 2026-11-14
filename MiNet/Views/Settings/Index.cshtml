@@ -1,4 +1,20 @@
 ﻿@model User;
+@using System.Text.Json;
+@{
+    var currentInterests = "";
+    if (!string.IsNullOrEmpty(Model.InterestsJson))
+    {
+        try
+        {
+            var tags = JsonSerializer.Deserialize<List<string>>(Model.InterestsJson);
+            if (tags != null && tags.Count > 0)
+            {
+                currentInterests = string.Join(", ", tags);
+            }
+        }
+        catch { }
+    }
+}
 
 <main id="site__main" class="2xl:ml-[--w-side]  xl:ml-[--w-side-sm] p-2.5 h-[calc(100vh-var(--m-top))] mt-[--m-top]">
 
@@ -51,25 +67,54 @@
                         <div class="space-y-6">
                             @if (TempData["UserProfileError"] != null)
                             {
-                                <div class="text-red-500 mb-4">@TempData["UserProfileError"]</div>
+                                <div class="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">@TempData["UserProfileError"]</div>
+                            }
+                            @if (TempData["UserProfileSuccess"] != null)
+                            {
+                                <div class="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg font-medium">@TempData["UserProfileSuccess"]</div>
                             }
 
                             <div class="flex items-center gap-10">
-                                <label class="w-32 text-right">Full name</label>
+                                <label class="w-32 text-right font-medium">Full name</label>
                                 <div class="flex-1">
-                                    <input value="@Model.Name" type="text" name="fullName" placeholder="Enter your full name" class="w-full" />
+                                    <input value="@Model.Name" type="text" name="fullName" placeholder="Enter your full name" class="w-full !rounded-lg !border-slate-300" />
                                 </div>
                             </div>
                             <div class="flex items-center gap-10">
-                                <label class="w-32 text-right">Username</label>
+                                <label class="w-32 text-right font-medium">Username</label>
                                 <div class="flex-1">
-                                    <input value="@Model.UserName" type="text" name="username" placeholder="Enter your username" class="w-full" />
+                                    <input value="@Model.UserName" type="text" name="username" placeholder="Enter your username" class="w-full !rounded-lg !border-slate-300" />
                                 </div>
                             </div>
                             <div class="flex items-center gap-10">
-                                <label class="w-32 text-right">Bio</label>
+                                <label class="w-32 text-right font-medium">Cover Photo URL</label>
                                 <div class="flex-1">
-                                    <textarea class="w-full" name="bio" rows="5" placeholder="Enter your bio">@Model.Bio</textarea>
+                                    <input value="@Model.CoverImageUrl" type="text" name="coverImageUrl" placeholder="https://images.unsplash.com/... (URL ảnh bìa trang cá nhân)" class="w-full !rounded-lg !border-slate-300" />
+                                    <p class="text-xs text-gray-400 mt-1">Ảnh bìa hiển thị trên đầu trang cá nhân (Instagram profile cover).</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-10">
+                                <label class="w-32 text-right font-medium pt-2">Sở thích AI Feed</label>
+                                <div class="flex-1">
+                                    <input value="@currentInterests" type="text" name="interests" placeholder="#technology, #travel, #food, #coding, #ai" class="w-full !rounded-lg !border-slate-300" />
+                                    <p class="text-xs text-gray-500 mt-1">Nhập các hashtag cách nhau bởi dấu phẩy. Thuật toán AI ML.NET sẽ học và cá nhân hóa Bảng tin Dành cho bạn theo các chủ đề này!</p>
+                                    @if (!string.IsNullOrEmpty(currentInterests))
+                                    {
+                                        <div class="flex flex-wrap gap-1.5 mt-2">
+                                            @foreach (var tag in currentInterests.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                            {
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">
+                                                    @tag.Trim()
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-10">
+                                <label class="w-32 text-right font-medium">Bio</label>
+                                <div class="flex-1">
+                                    <textarea class="w-full !rounded-lg !border-slate-300" name="bio" rows="4" placeholder="Enter your bio">@Model.Bio</textarea>
                                 </div>
                             </div>
                             <div class="flex items-center gap-4 mt-16 pl-[10.5rem]">

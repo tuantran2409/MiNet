@@ -20,7 +20,8 @@ namespace MiNet.Data.Services
         {
             var cutoff = DateTime.UtcNow.AddHours(-24);
             var allStories = await _context.Stories
-                .Where(n => !n.IsDeleted && n.DateCreated >= cutoff)
+                .AsNoTracking()
+                .Where(n => !n.IsDeleted && (n.DateCreated >= cutoff || n.IsHighlight))
                 .Include(s => s.User)
                 .Include(s => s.Views)
                 .OrderByDescending(s => s.DateCreated)
@@ -62,6 +63,7 @@ namespace MiNet.Data.Services
         public async Task<List<User>> GetStoryViewersAsync(int storyId)
         {
             return await _context.StoryViews
+                .AsNoTracking()
                 .Where(sv => sv.StoryId == storyId)
                 .OrderByDescending(sv => sv.ViewedAt)
                 .Select(sv => sv.Viewer)
@@ -71,7 +73,32 @@ namespace MiNet.Data.Services
         public async Task<bool> HasUserViewedStoryAsync(int storyId, int userId)
         {
             return await _context.StoryViews
+                .AsNoTracking()
                 .AnyAsync(sv => sv.StoryId == storyId && sv.ViewerId == userId);
+        }
+
+        public async Task<List<Story>> GetUserHighlightsAsync(int userId)
+        {
+            return await _context.Stories
+                .AsNoTracking()
+                .Where(s => s.UserId == userId && s.IsHighlight && !s.IsDeleted)
+                .OrderByDescending(s => s.DateCreated)
+                .ToListAsync();
+        }
+
+        public async Task<bool> ToggleStoryHighlightAsync(int storyId, string? title)
+        {
+            var story = await _context.Stories.FirstOrDefaultAsync(s => s.Id == storyId);
+            if (story == null) return false;
+
+            story.IsHighlight = !story.IsHighlight;
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                story.HighlightTitle = title.Trim();
+            }
+            _context.Stories.Update(story);
+            await _context.SaveChangesAsync();
+            return story.IsHighlight;
         }
     }
 }

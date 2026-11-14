@@ -8,6 +8,7 @@ namespace MiNet.ViewModels.Users
         public User User { get; set; } = null!;
         public List<Post> Posts { get; set; } = new List<Post>();
         public List<Post> SavedPosts { get; set; } = new List<Post>();
+        public List<Story> Highlights { get; set; } = new List<Story>();
         public IList<string> Roles { get; set; } = new List<string>();
         public List<User> Friends { get; set; } = new List<User>();
 

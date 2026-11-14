@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
@@ -10,10 +12,72 @@ namespace MiNet.Data.Hubs
     public class ChatHub : Hub
     {
         private readonly IChatService _chatService;
+        private static readonly ConcurrentDictionary<int, HashSet<string>> _onlineUsers = new();
 
         public ChatHub(IChatService chatService)
         {
             _chatService = chatService;
+        }
+
+        public override async Task OnConnectedAsync()
+        {
+            var userId = GetCurrentUserId();
+            if (userId.HasValue)
+            {
+                bool becameOnline = false;
+                _onlineUsers.AddOrUpdate(userId.Value,
+                    _ =>
+                    {
+                        becameOnline = true;
+                        return new HashSet<string> { Context.ConnectionId };
+                    },
+                    (_, connections) =>
+                    {
+                        lock (connections)
+                        {
+                            connections.Add(Context.ConnectionId);
+                        }
+                        return connections;
+                    });
+
+                if (becameOnline)
+                {
+                    await Clients.Others.SendAsync("UserStatusChanged", new { userId = userId.Value, isOnline = true });
+                }
+            }
+            await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            var userId = GetCurrentUserId();
+            if (userId.HasValue)
+            {
+                bool becameOffline = false;
+                if (_onlineUsers.TryGetValue(userId.Value, out var connections))
+                {
+                    lock (connections)
+                    {
+                        connections.Remove(Context.ConnectionId);
+                        if (connections.Count == 0)
+                        {
+                            becameOffline = true;
+                        }
+                    }
+                    if (becameOffline)
+                    {
+                        _onlineUsers.TryRemove(userId.Value, out _);
+                        await Clients.Others.SendAsync("UserStatusChanged", new { userId = userId.Value, isOnline = false });
+                    }
+                }
+            }
+            await base.OnDisconnectedAsync(exception);
+        }
+
+        public Task<bool> CheckUserOnline(int targetUserId)
+        {
+            bool isOnline = _onlineUsers.ContainsKey(targetUserId);
+            return Task.FromResult(isOnline);
         }
 
         public async Task JoinConversation(int conversationId)
@@ -26,14 +90,28 @@ namespace MiNet.Data.Hubs
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Conversation_{conversationId}");
         }
 
+        public async Task SendTyping(int conversationId, bool isTyping)
+        {
+            var userId = GetCurrentUserId();
+            if (!userId.HasValue) return;
+
+            var userName = Context.User?.Identity?.Name ?? "User";
+            await Clients.OthersInGroup($"Conversation_{conversationId}").SendAsync("UserTyping", new
+            {
+                conversationId,
+                userId = userId.Value,
+                userName,
+                isTyping
+            });
+        }
+
         public async Task SendMessage(int conversationId, string content, string? fileUrl, int type)
         {
-            var userIdString = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
-                return;
+            var userId = GetCurrentUserId();
+            if (!userId.HasValue) return;
 
             var messageType = (MessageType)type;
-            var message = await _chatService.SaveMessageAsync(conversationId, userId, content, messageType, fileUrl);
+            var message = await _chatService.SaveMessageAsync(conversationId, userId.Value, content, messageType, fileUrl);
 
             // Broadcast to the group
             await Clients.Group($"Conversation_{conversationId}").SendAsync("ReceiveMessage", new
@@ -49,6 +127,14 @@ namespace MiNet.Data.Hubs
                 dateSent = message.DateSent.ToString("o"),
                 isDeletedUser = message.Sender?.IsDeleted ?? false
             });
+        }
+
+        private int? GetCurrentUserId()
+        {
+            var userIdString = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(userIdString, out int userId))
+                return userId;
+            return null;
         }
     }
 }

@@ -20,19 +20,22 @@ namespace MiNet.Controllers
         private readonly IFriendsService _friendsService;
         private readonly IFollowService _followService;
         private readonly IPostsService _postsService;
+        private readonly IStoriesService _storiesService;
 
         public UsersController(
             IUsersService usersService,
             UserManager<User> userManager,
             IFriendsService friendsService,
             IFollowService followService,
-            IPostsService postsService)
+            IPostsService postsService,
+            IStoriesService storiesService)
         {
             _userService = usersService;
             _userManager = userManager;
             _friendsService = friendsService;
             _followService = followService;
             _postsService = postsService;
+            _storiesService = storiesService;
         }
 
         public IActionResult Index()
@@ -64,11 +67,14 @@ namespace MiNet.Controllers
                 savedPosts = await _postsService.GetAllFavoritedPostsAsync(currentUserId);
             }
 
+            var highlights = await _storiesService.GetUserHighlightsAsync(userId);
+
             var userProfileVM = new GetUserProfileVM
             {
                 User = user,
                 Posts = userPosts,
                 SavedPosts = savedPosts,
+                Highlights = highlights,
                 Roles = roles,
                 Friends = friendsList,
                 FollowersCount = followersCount,

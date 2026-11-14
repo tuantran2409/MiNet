@@ -118,6 +118,33 @@
                     </div>
                 }
 
+                <!-- Story Highlights Tray (Instagram Style) -->
+                @if (Model.Highlights.Any() || Model.IsSelf)
+                {
+                    <div class="flex items-center gap-4 mb-6 overflow-x-auto pb-1">
+                        @if (Model.IsSelf)
+                        {
+                            <div class="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group" uk-toggle="target: #create-story">
+                                <div class="w-16 h-16 rounded-full border-2 border-dashed border-slate-300 hover:border-primary flex items-center justify-center text-slate-400 hover:text-primary transition group-hover:scale-105 duration-200">
+                                    <ion-icon name="add-outline" class="text-2xl"></ion-icon>
+                                </div>
+                                <span class="text-[11px] font-medium text-slate-500">New</span>
+                            </div>
+                        }
+                        @foreach (var hl in Model.Highlights)
+                        {
+                            <div class="flex flex-col items-center gap-1.5 shrink-0 group cursor-pointer" uk-lightbox="">
+                                <a href="@ResolveImageUrl(hl.ImageUrl)" data-caption="@(hl.HighlightTitle ?? "Highlight")">
+                                    <div class="w-16 h-16 rounded-full p-[2px] ring-2 ring-slate-200 hover:ring-primary transition overflow-hidden group-hover:scale-105 duration-200">
+                                        <img src="@ResolveImageUrl(hl.ImageUrl)" class="w-full h-full object-cover rounded-full" alt="Highlight" />
+                                    </div>
+                                </a>
+                                <span class="text-[11px] font-semibold text-slate-700 max-w-[68px] truncate">@(hl.HighlightTitle ?? "Highlight")</span>
+                            </div>
+                        }
+                    </div>
+                }
+
                 <!-- 4 Statistics Counter Row (Instagram Standard) -->
                 <div class="grid grid-cols-4 border-t border-slate-100 pt-5 text-center">
                     <div>

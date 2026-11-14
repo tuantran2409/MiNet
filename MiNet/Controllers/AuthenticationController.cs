@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace MiNet.Controllers
 {
@@ -199,11 +200,29 @@ namespace MiNet.Controllers
             loggedInUser.Name = profileVM.FullName;
             loggedInUser.UserName = profileVM.UserName;
             loggedInUser.Bio = profileVM.Bio;
+            loggedInUser.CoverImageUrl = string.IsNullOrWhiteSpace(profileVM.CoverImageUrl) ? null : profileVM.CoverImageUrl.Trim();
+
+            if (profileVM.Interests != null)
+            {
+                var tags = profileVM.Interests
+                    .Split(new[] { ',', ' ', ';', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(t => t.Trim())
+                    .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .Select(t => t.StartsWith("#") ? t.ToLower() : "#" + t.ToLower())
+                    .Distinct()
+                    .ToList();
+                loggedInUser.InterestsJson = JsonSerializer.Serialize(tags);
+            }
 
             var result = await _userManager.UpdateAsync(loggedInUser);
             if (!result.Succeeded)
             {
                 TempData["UserProfileError"] = "User profile could not be updated";
+                TempData["ActiveTab"] = "Profile";
+            }
+            else
+            {
+                TempData["UserProfileSuccess"] = "Cập nhật hồ sơ và sở thích AI thành công!";
                 TempData["ActiveTab"] = "Profile";
             }
 

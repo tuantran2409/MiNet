@@ -10,6 +10,10 @@ namespace MiNet.Data.Models
         public DateTime DateCreated { get; set; }
         public bool IsDeleted { get; set; }
 
+        // Story Highlights
+        public bool IsHighlight { get; set; } = false;
+        public string? HighlightTitle { get; set; }
+
         // Foreign key
         public int UserId { get; set; }
 

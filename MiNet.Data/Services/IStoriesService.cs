@@ -11,5 +11,7 @@ namespace MiNet.Data.Services
         Task<bool> RecordStoryViewAsync(int storyId, int viewerId);
         Task<List<User>> GetStoryViewersAsync(int storyId);
         Task<bool> HasUserViewedStoryAsync(int storyId, int userId);
+        Task<List<Story>> GetUserHighlightsAsync(int userId);
+        Task<bool> ToggleStoryHighlightAsync(int storyId, string? title);
     }
 }
