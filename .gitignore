@@ -392,3 +392,14 @@ tests/obj/
 TestResults/
 *.log
 /tmp/
+
+
+# Documentation & AI Agent Rules (Excluded from Git per project policy)
+BAO_CAO_DANH_GIA_TIEN_DO_MINET.md
+k_ho_ch_th_c_thi_cho_ai_agent_d_n_minet.md
+GEMINI.md
+AGENTS.md
+.agents/
+*.md
+!README.md
+!CONTRIBUTING.md
