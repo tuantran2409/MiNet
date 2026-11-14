@@ -1,8 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MiNet.Data.Models
 {
@@ -16,7 +13,8 @@ namespace MiNet.Data.Models
         // Foreign key
         public int UserId { get; set; }
 
-        //Navigation properties
-        public User User { get; set; }
+        // Navigation properties
+        public User User { get; set; } = null!;
+        public ICollection<StoryView> Views { get; set; } = new List<StoryView>();
     }
 }

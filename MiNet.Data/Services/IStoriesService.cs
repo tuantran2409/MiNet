@@ -1,9 +1,5 @@
-﻿using MiNet.Data.Models;
-using Microsoft.AspNetCore.Http;
-using System;
+using MiNet.Data.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MiNet.Data.Services
@@ -12,5 +8,8 @@ namespace MiNet.Data.Services
     {
         Task<List<Story>> GetAllStoriesAsync();
         Task<Story> CreateStoryAsync(Story story);
+        Task<bool> RecordStoryViewAsync(int storyId, int viewerId);
+        Task<List<User>> GetStoryViewersAsync(int storyId);
+        Task<bool> HasUserViewedStoryAsync(int storyId, int userId);
     }
 }

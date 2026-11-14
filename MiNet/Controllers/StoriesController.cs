@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MiNet.Controllers.Base;
 using MiNet.Data.Helpers.Constants;
@@ -6,7 +6,9 @@ using MiNet.Data.Helpers.Enums;
 using MiNet.Data.Models;
 using MiNet.Data.Services;
 using MiNet.ViewModels.Stories;
-
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MiNet.Controllers
 {
@@ -25,26 +27,44 @@ namespace MiNet.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateStory(StoryVM storyVM)
         {
-            //get the loggedin User Id
             var loggedInUserId = GetUserId();
             if (loggedInUserId == null) return RedirectToLogin();
 
-            //Check and save the img url
             var imageUploadPath = await _filesService.UploadImageAsync(storyVM.Image, ImageFileType.StoryImage);
 
             var newStory = new Story
             {
-                DateCreated = DateTime.Now,
+                DateCreated = DateTime.UtcNow,
                 IsDeleted = false,
                 ImageUrl = imageUploadPath,
                 UserId = loggedInUserId.Value
             };
 
-
-            //Add story to the database
             await _storiesService.CreateStoryAsync(newStory);
 
-            return RedirectToAction("Index","Home");
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RecordView(int storyId)
+        {
+            var loggedInUserId = GetUserId();
+            if (loggedInUserId == null) return Unauthorized();
+
+            bool success = await _storiesService.RecordStoryViewAsync(storyId, loggedInUserId.Value);
+            return Json(new { success });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetViewers(int storyId)
+        {
+            var viewers = await _storiesService.GetStoryViewersAsync(storyId);
+            return Json(viewers.Select(v => new
+            {
+                id = v.Id,
+                name = v.Name,
+                avatar = v.ProfilePictureUrl
+            }));
         }
     }
 }

@@ -26,6 +26,8 @@ namespace MiNet.Data
         public DbSet<ConversationMember> ConversationMembers { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<UserInteraction> UserInteractions { get; set; }
+        public DbSet<UserFollow> UserFollows { get; set; }
+        public DbSet<StoryView> StoryViews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -173,6 +175,45 @@ namespace MiNet.Data
                 .WithMany(p => p.Interactions)
                 .HasForeignKey(ui => ui.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // UserFollow configurations (1-way follow)
+            modelBuilder.Entity<UserFollow>()
+                .HasKey(uf => new { uf.FollowerId, uf.FollowingId });
+
+            modelBuilder.Entity<UserFollow>()
+                .HasOne(uf => uf.Follower)
+                .WithMany(u => u.Followings)
+                .HasForeignKey(uf => uf.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFollow>()
+                .HasOne(uf => uf.Following)
+                .WithMany(u => u.Followers)
+                .HasForeignKey(uf => uf.FollowingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Nested Comments self-referencing
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.ParentComment)
+                .WithMany(c => c.Replies)
+                .HasForeignKey(c => c.ParentCommentId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // StoryView configurations
+            modelBuilder.Entity<StoryView>()
+                .HasKey(sv => new { sv.StoryId, sv.ViewerId });
+
+            modelBuilder.Entity<StoryView>()
+                .HasOne(sv => sv.Story)
+                .WithMany(s => s.Views)
+                .HasForeignKey(sv => sv.StoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StoryView>()
+                .HasOne(sv => sv.Viewer)
+                .WithMany()
+                .HasForeignKey(sv => sv.ViewerId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

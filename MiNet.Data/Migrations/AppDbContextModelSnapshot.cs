@@ -40,6 +40,9 @@ namespace MiNet.Migrations
                     b.Property<DateTime>("DateUpdated")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("ParentCommentId")
+                        .HasColumnType("int");
+
                     b.Property<int>("PostId")
                         .HasColumnType("int");
 
@@ -47,6 +50,8 @@ namespace MiNet.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentCommentId");
 
                     b.HasIndex("PostId");
 
@@ -217,7 +222,13 @@ namespace MiNet.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReactionType")
                         .HasColumnType("int");
 
                     b.HasKey("PostId", "UserId");
@@ -387,6 +398,24 @@ namespace MiNet.Migrations
                     b.ToTable("Stories");
                 });
 
+            modelBuilder.Entity("MiNet.Data.Models.StoryView", b =>
+                {
+                    b.Property<int>("StoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ViewerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ViewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("StoryId", "ViewerId");
+
+                    b.HasIndex("ViewerId");
+
+                    b.ToTable("StoryViews");
+                });
+
             modelBuilder.Entity("MiNet.Data.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -475,6 +504,24 @@ namespace MiNet.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("MiNet.Data.Models.UserFollow", b =>
+                {
+                    b.Property<int>("FollowerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FollowingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("FollowerId", "FollowingId");
+
+                    b.HasIndex("FollowingId");
+
+                    b.ToTable("UserFollows");
                 });
 
             modelBuilder.Entity("MiNet.Data.Models.UserInteraction", b =>
@@ -647,6 +694,11 @@ namespace MiNet.Migrations
 
             modelBuilder.Entity("MiNet.Data.Models.Comment", b =>
                 {
+                    b.HasOne("MiNet.Data.Models.Comment", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("MiNet.Data.Models.Post", "Post")
                         .WithMany("Comments")
                         .HasForeignKey("PostId")
@@ -658,6 +710,8 @@ namespace MiNet.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ParentComment");
 
                     b.Navigation("Post");
 
@@ -818,6 +872,44 @@ namespace MiNet.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MiNet.Data.Models.StoryView", b =>
+                {
+                    b.HasOne("MiNet.Data.Models.Story", "Story")
+                        .WithMany("Views")
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MiNet.Data.Models.User", "Viewer")
+                        .WithMany()
+                        .HasForeignKey("ViewerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Story");
+
+                    b.Navigation("Viewer");
+                });
+
+            modelBuilder.Entity("MiNet.Data.Models.UserFollow", b =>
+                {
+                    b.HasOne("MiNet.Data.Models.User", "Follower")
+                        .WithMany("Followings")
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MiNet.Data.Models.User", "Following")
+                        .WithMany("Followers")
+                        .HasForeignKey("FollowingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Follower");
+
+                    b.Navigation("Following");
+                });
+
             modelBuilder.Entity("MiNet.Data.Models.UserInteraction", b =>
                 {
                     b.HasOne("MiNet.Data.Models.Post", "Post")
@@ -888,6 +980,11 @@ namespace MiNet.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MiNet.Data.Models.Comment", b =>
+                {
+                    b.Navigation("Replies");
+                });
+
             modelBuilder.Entity("MiNet.Data.Models.Conversation", b =>
                 {
                     b.Navigation("Members");
@@ -908,11 +1005,20 @@ namespace MiNet.Migrations
                     b.Navigation("Reports");
                 });
 
+            modelBuilder.Entity("MiNet.Data.Models.Story", b =>
+                {
+                    b.Navigation("Views");
+                });
+
             modelBuilder.Entity("MiNet.Data.Models.User", b =>
                 {
                     b.Navigation("Comments");
 
                     b.Navigation("Favorites");
+
+                    b.Navigation("Followers");
+
+                    b.Navigation("Followings");
 
                     b.Navigation("Interactions");
 

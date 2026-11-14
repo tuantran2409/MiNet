@@ -99,15 +99,22 @@ namespace MiNet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TogglePostLike(PostLikeVM postLikeVM)
         {
+            return await SetPostReaction(new PostReactionVM { PostId = postLikeVM.PostId, ReactionType = ReactionType.Like });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetPostReaction(PostReactionVM reactionVM)
+        {
             var userId = GetUserId();
             var userName = GetUserFullName();
             if (userId == null) return RedirectToLogin();
 
-            var result = await _postsService.TogglePostLikeAsync(postLikeVM.PostId, userId.Value);
-            var post = await _postsService.GetPostByIdAsync(postLikeVM.PostId);
+            var result = await _postsService.SetPostReactionAsync(reactionVM.PostId, userId.Value, reactionVM.ReactionType);
+            var post = await _postsService.GetPostByIdAsync(reactionVM.PostId);
 
             if (result.SendNotification && userId != post?.UserId && post != null)
-                await _notificationsService.AddNewNotificationAsync(post.UserId, NotificationType.Like, userName, postLikeVM.PostId);
+                await _notificationsService.AddNewNotificationAsync(post.UserId, NotificationType.Like, $"{userName} reacted ({reactionVM.ReactionType}) to your post", reactionVM.PostId);
 
             return PartialView("Home/_Post", post);
         }
@@ -152,6 +159,7 @@ namespace MiNet.Controllers
                 UserId = userId.Value,
                 PostId = postCommentVM.PostId,
                 Content = postCommentVM.Content,
+                ParentCommentId = postCommentVM.ParentCommentId,
                 DateCreated = DateTime.UtcNow,
                 DateUpdated = DateTime.UtcNow
             };

@@ -41,14 +41,22 @@ namespace MiNet.Data.Services
                 .Select(n => n.SenderId == currentUserId ? n.ReceiverId : n.SenderId)
                 .ToListAsync();
 
+            // 1b. Get 1-way following IDs
+            var followingIds = await _context.UserFollows
+                .AsNoTracking()
+                .Where(f => f.FollowerId == currentUserId)
+                .Select(f => f.FollowingId)
+                .ToListAsync();
+
             // 2. Fetch candidate pool
             var candidatePosts = await _context.Posts
                 .AsNoTracking()
                 .Where(n => (!n.IsPrivate || n.UserId == currentUserId || friendIds.Contains(n.UserId)) && n.Reports.Count < 5 && !n.IsDeleted)
                 .Include(n => n.User)
-                .Include(n => n.Likes)
+                .Include(n => n.Likes).ThenInclude(l => l.User)
                 .Include(n => n.Favorites)
-                .Include(n => n.Comments).ThenInclude(c => c.User)
+                .Include(n => n.Comments.Where(c => c.ParentCommentId == null)).ThenInclude(c => c.User)
+                .Include(n => n.Comments.Where(c => c.ParentCommentId == null)).ThenInclude(c => c.Replies).ThenInclude(r => r.User)
                 .Include(n => n.Reports)
                 .OrderByDescending(n => n.DateCreated)
                 .Take(150)
@@ -68,11 +76,15 @@ namespace MiNet.Data.Services
                 // A. ML.NET Predicted AI Score [0, 1]
                 float aiScore = _recommendationService.PredictScore(currentUserId, post.Id);
 
-                // B. Relationship Weight [0, 1]
+                // B. Relationship Weight [0, 1]: Self/Friends=1.0, 1-way Follow=0.7, Stranger=0.2
                 float relationshipWeight = 0.2f;
                 if (post.UserId == currentUserId || friendIds.Contains(post.UserId))
                 {
                     relationshipWeight = 1.0f;
+                }
+                else if (followingIds.Contains(post.UserId))
+                {
+                    relationshipWeight = 0.7f;
                 }
 
                 // C. Time Decay [0, 1]
@@ -130,9 +142,10 @@ namespace MiNet.Data.Services
         {
             return await _context.Posts
                 .Include(n => n.User)
-                .Include(n => n.Likes)
+                .Include(n => n.Likes).ThenInclude(l => l.User)
                 .Include(n => n.Favorites)
-                .Include(n => n.Comments).ThenInclude(n => n.User)
+                .Include(n => n.Comments.Where(c => c.ParentCommentId == null)).ThenInclude(n => n.User)
+                .Include(n => n.Comments.Where(c => c.ParentCommentId == null)).ThenInclude(c => c.Replies).ThenInclude(r => r.User)
                 .FirstOrDefaultAsync(n => n.Id == postId);
         }
 
@@ -142,7 +155,8 @@ namespace MiNet.Data.Services
                 .AsNoTracking()
                 .Include(f => f.Post.Reports)
                 .Include(f => f.Post.User)
-                .Include(f => f.Post.Comments).ThenInclude(c => c.User)
+                .Include(f => f.Post.Comments.Where(c => c.ParentCommentId == null)).ThenInclude(c => c.User)
+                .Include(f => f.Post.Comments.Where(c => c.ParentCommentId == null)).ThenInclude(c => c.Replies).ThenInclude(r => r.User)
                 .Include(f => f.Post.Likes)
                 .Include(f => f.Post.Favorites)
                 .Where(n => n.UserId == loggedInUserId && !n.Post.IsDeleted && n.Post.Reports.Count < 5)
@@ -197,9 +211,16 @@ namespace MiNet.Data.Services
 
         public async Task RemovePostCommentAsync(int commentId)
         {
-            var commentDb = await _context.Comments.FirstOrDefaultAsync(n => n.Id == commentId);
+            var commentDb = await _context.Comments
+                .Include(c => c.Replies)
+                .FirstOrDefaultAsync(n => n.Id == commentId);
+
             if (commentDb != null)
             {
+                if (commentDb.Replies.Any())
+                {
+                    _context.Comments.RemoveRange(commentDb.Replies);
+                }
                 _context.Comments.Remove(commentDb);
                 await _context.SaveChangesAsync();
             }
@@ -214,7 +235,7 @@ namespace MiNet.Data.Services
             await _interactionService.RecordInteractionAsync(comment.UserId, comment.PostId, InteractionType.Comment);
         }
 
-        public async Task<GetNotificationDto> TogglePostLikeAsync(int postId, int userId)
+        public async Task<GetNotificationDto> SetPostReactionAsync(int postId, int userId, ReactionType reactionType)
         {
             var response = new GetNotificationDto
             {
@@ -227,26 +248,48 @@ namespace MiNet.Data.Services
 
             if (like != null)
             {
-                _context.Likes.Remove(like);
-                await _context.SaveChangesAsync();
+                if (like.ReactionType == reactionType)
+                {
+                    // Same reaction -> toggle off
+                    _context.Likes.Remove(like);
+                    await _context.SaveChangesAsync();
+                    return response;
+                }
+                else
+                {
+                    // Changed reaction
+                    like.ReactionType = reactionType;
+                    like.DateCreated = DateTime.UtcNow;
+                    _context.Likes.Update(like);
+                    await _context.SaveChangesAsync();
+
+                    response.SendNotification = true;
+                    return response;
+                }
             }
             else
             {
                 var newLike = new Like
                 {
                     PostId = postId,
-                    UserId = userId
+                    UserId = userId,
+                    ReactionType = reactionType,
+                    DateCreated = DateTime.UtcNow
                 };
-                await _context.AddAsync(newLike);
+                await _context.Likes.AddAsync(newLike);
                 await _context.SaveChangesAsync();
 
                 // Record AI interaction: Like (+3.0 score)
                 await _interactionService.RecordInteractionAsync(userId, postId, InteractionType.Like);
 
                 response.SendNotification = true;
+                return response;
             }
+        }
 
-            return response;
+        public async Task<GetNotificationDto> TogglePostLikeAsync(int postId, int userId)
+        {
+            return await SetPostReactionAsync(postId, userId, ReactionType.Like);
         }
 
         public async Task<GetNotificationDto> TogglePostFavoriteAsync(int postId, int userId)
@@ -258,7 +301,7 @@ namespace MiNet.Data.Services
             };
 
             var favorite = await _context.Favorites
-                .FirstOrDefaultAsync(f => f.PostId == postId && f.UserId == userId);
+                .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
 
             if (favorite != null)
             {
@@ -276,7 +319,7 @@ namespace MiNet.Data.Services
                 await _context.AddAsync(newFavorite);
                 await _context.SaveChangesAsync();
 
-                // Record AI interaction: Save (+7.0 score)
+                // Record AI interaction: Save/Favorite (+7.0 score)
                 await _interactionService.RecordInteractionAsync(userId, postId, InteractionType.Save);
 
                 response.SendNotification = true;
@@ -287,9 +330,7 @@ namespace MiNet.Data.Services
 
         public async Task TogglePostVisibilityAsync(int postId, int userId)
         {
-            var post = await _context.Posts
-                .FirstOrDefaultAsync(l => l.Id == postId && l.UserId == userId);
-
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == postId && p.UserId == userId);
             if (post != null)
             {
                 post.IsPrivate = !post.IsPrivate;

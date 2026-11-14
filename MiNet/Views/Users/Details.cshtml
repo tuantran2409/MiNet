@@ -1,91 +1,345 @@
 @using System.Security.Claims
 @using MiNet.Data.Helpers.Constants
-@model GetUserProfileVM;
+@using System.Text.Json
+@model MiNet.ViewModels.Users.GetUserProfileVM
 
-<main id="site__main" class="2xl:ml-[--w-side]  xl:ml-[--w-side-sm] p-2.5 h-[calc(100vh-var(--m-top))] mt-[--m-top]">
+@{
+    ViewData["Title"] = Model.User.Name;
 
-    <div class="max-w-[1065px] mx-auto max-lg:-m-2.5">
-        <div class="bg-white shadow lg:rounded-b-xl lg:-mt-10">
-            <div class="relative overflow-hidden w-full lg:h-8 h-8"></div>
-            <div class="p-3 flex flex-row items-center">
-                <div class="flex-shrink-0 mr-4">
-                    <div class="relative lg:h-28 lg:w-28 w-28 h-28">
-                        <div class="relative overflow-hidden rounded-full md:border-[6px] border-gray-100 shrink-0">
-                            <img src="@(string.IsNullOrEmpty(Model.User.ProfilePictureUrl) ?
-                                Url.Content("~/images/avatar/user.png") :
-                                Url.Content("~" + Model.User.ProfilePictureUrl))" />
+    string userAvatar = !string.IsNullOrEmpty(Model.User.ProfilePictureUrl)
+        ? (Model.User.ProfilePictureUrl.StartsWith("http") ? Model.User.ProfilePictureUrl : Url.Content("~/" + Model.User.ProfilePictureUrl.TrimStart('/')))
+        : Url.Content("~/images/avatar/user.png");
+
+    string coverImage = !string.IsNullOrEmpty(Model.User.CoverImageUrl)
+        ? (Model.User.CoverImageUrl.StartsWith("http") ? Model.User.CoverImageUrl : Url.Content("~/" + Model.User.CoverImageUrl.TrimStart('/')))
+        : "https://images.unsplash.com/photo-1707343843437-caacff5cfa74?auto=format&fit=crop&w=1200&q=80";
+
+    List<string> interests = new List<string>();
+    if (!string.IsNullOrEmpty(Model.User.InterestsJson))
+    {
+        try
+        {
+            interests = JsonSerializer.Deserialize<List<string>>(Model.User.InterestsJson) ?? new List<string>();
+        }
+        catch { }
+    }
+
+    string ResolveImageUrl(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return string.Empty;
+        if (url.StartsWith("http://") || url.StartsWith("https://")) return url;
+        return Url.Content("~/" + url.TrimStart('/'));
+    }
+}
+
+<main id="site__main" class="2xl:ml-[--w-side] xl:ml-[--w-side-sm] p-2.5 h-[calc(100vh-var(--m-top))] mt-[--m-top] overflow-y-auto">
+    <div class="max-w-[980px] mx-auto py-6 px-4">
+        
+        <!-- Profile Header Container -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden mb-8">
+            <!-- Cover Photo Banner -->
+            <div class="h-44 md:h-60 w-full relative bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 overflow-hidden">
+                <img src="@coverImage" class="w-full h-full object-cover opacity-85" alt="Cover photo" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+            </div>
+
+            <!-- Profile Info Bar -->
+            <div class="px-6 md:px-10 pb-8 relative">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 -mt-16 md:-mt-20 mb-6">
+                    <!-- Avatar with Ring -->
+                    <div class="flex items-end gap-5">
+                        <div class="relative w-28 h-28 md:w-36 md:h-36 rounded-full ring-4 ring-white shadow-xl overflow-hidden bg-white shrink-0">
+                            <img src="@userAvatar" class="w-full h-full object-cover" alt="@Model.User.Name" />
+                        </div>
+                        <div class="hidden md:block pb-2">
+                            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                                @Model.User.Name
+                            </h1>
+                            <p class="text-sm font-medium text-slate-500">@@@Model.User.UserName</p>
                         </div>
                     </div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="md:text-3xl text-base font-bold text-black">@Model.User.Name</h3>
-                            <p class="mt-2 text-gray-500">@Model.User.UserName</p>
-                        </div>
 
-                        @{
-                            var isTargetAdmin = Model.Roles.Contains(AppRoles.Admin);
-                            var isCurrentAdmin = User.IsInRole(AppRoles.Admin);
-                            var isSelf = User.FindFirstValue(ClaimTypes.NameIdentifier) == Model.User.Id.ToString();
-                        }
-
-                        @if (!isSelf && (!isTargetAdmin || isCurrentAdmin))
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-3 pt-2">
+                        @if (Model.IsSelf)
                         {
-                            <form asp-controller="Chat" asp-action="StartPrivateChat" method="post">
+                            <a asp-controller="Settings" asp-action="Index"
+                               class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-2xs">
+                                <ion-icon name="create-outline" class="text-base"></ion-icon>
+                                <span>Edit Profile</span>
+                            </a>
+                        }
+                        else
+                        {
+                            <!-- Follow / Unfollow AJAX Button -->
+                            <button type="button" id="btn-follow" data-user-id="@Model.User.Id"
+                                    onclick="toggleFollow(@Model.User.Id)"
+                                    class="px-6 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm @(Model.IsFollowing ? "bg-slate-100 text-slate-800 hover:bg-rose-50 hover:text-rose-600" : "bg-primary text-white hover:bg-primary-dark")">
+                                <ion-icon name="@(Model.IsFollowing ? "checkmark-outline" : "person-add-outline")" class="text-base"></ion-icon>
+                                <span id="follow-btn-text">@(Model.IsFollowing ? "Following" : "Follow")</span>
+                            </button>
+
+                            <!-- Direct Message Button -->
+                            <form asp-controller="Chat" asp-action="StartPrivateChat" method="post" class="inline">
                                 <input type="hidden" name="targetUserId" value="@Model.User.Id" />
-                                <button type="submit" class="button bg-primary text-white flex items-center gap-2 px-6 py-2 rounded-lg font-semibold hover:bg-primary-dark transition shadow-sm">
-                                    <ion-icon name="chatbubble-ellipses-outline" class="text-xl"></ion-icon>
-                                    Message
+                                <button type="submit" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-sm">
+                                    <ion-icon name="chatbubble-ellipses-outline" class="text-base"></ion-icon>
+                                    <span>Message</span>
                                 </button>
                             </form>
                         }
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="flex 2xl:gap-12 gap-10 mt-8 max-lg:flex-col" id="js-oversized">
-            <div class="flex-1 xl:space-y-6 space-y-3">
-                @foreach (var post in Model.Posts)
+
+                <!-- Mobile Name & Bio -->
+                <div class="md:hidden mb-4">
+                    <h1 class="text-xl font-extrabold text-slate-900">@Model.User.Name</h1>
+                    <p class="text-xs text-slate-500">@@@Model.User.UserName</p>
+                </div>
+
+                <!-- Bio & Description -->
+                @if (!string.IsNullOrEmpty(Model.User.Bio))
                 {
-                    <partial name="Home/_Post" model="post"
-                             view-data='new ViewDataDictionary(ViewData)
-                            {
-                                {"ShowAllComment", false },
-                                {"ShowDetails", false }
-                            }' />
+                    <p class="text-sm text-slate-700 leading-relaxed max-w-2xl mb-4 font-normal">
+                        @Model.User.Bio
+                    </p>
                 }
-            </div>
-            <div class="lg:w-[400px]">
-                <div class="lg:space-y-4 lg:pb-8 max-lg:grid sm:grid-cols-2 max-lg:gap-6"
-                     uk-sticky="media: 1024; end: #js-oversized; offset: 80">
-                    <div class="box p-5 px-6">
-                        <div class="flex items-ce justify-between text-black">
 
-                            <h3 class="font-bold text-lg">
-                                Friends
-                                <span class="block text-sm text-gray-500 mt-0. font-normal"> @Model.Friends.Count friends </span>
-                            </h3>
+                <!-- Interests Tags Pills -->
+                @if (interests.Any())
+                {
+                    <div class="flex flex-wrap items-center gap-1.5 mb-6">
+                        @foreach (var tag in interests)
+                        {
+                            <a href="/Explore?tag=@tag.TrimStart('#')" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-full text-xs font-semibold transition">
+                                @(tag.StartsWith("#") ? tag : "#" + tag)
+                            </a>
+                        }
+                    </div>
+                }
 
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-2 gap-y-5 text-center text-sm mt-4 mb-2">
-                            @foreach (var friend in Model.Friends.Take(6))
-                            {
-                                <div>
-                                    <a asp-controller="Users" asp-action="Details" asp-route-userId="@friend.Id">
-                                        <div class="relative w-full aspect-square rounded-lg overflow-hidden">
-                                            <img src="@(string.IsNullOrEmpty(friend.ProfilePictureUrl) ? Url.Content("~/images/avatar/user.png") : Url.Content("~/" + friend.ProfilePictureUrl))" class="object-cover w-full h-full inset-0" />
-                                        </div>
-
-                                        <div class="mt-2 line-clamp-1">@friend.Name</div>
-                                    </a>
-                                </div>
-                            }
-                        </div>
+                <!-- 4 Statistics Counter Row (Instagram Standard) -->
+                <div class="grid grid-cols-4 border-t border-slate-100 pt-5 text-center">
+                    <div>
+                        <div class="text-lg md:text-xl font-extrabold text-slate-900">@Model.Posts.Count</div>
+                        <div class="text-xs font-medium text-slate-400">Posts</div>
+                    </div>
+                    <div>
+                        <div class="text-lg md:text-xl font-extrabold text-slate-900">@Model.Friends.Count</div>
+                        <div class="text-xs font-medium text-slate-400">Friends</div>
+                    </div>
+                    <div>
+                        <div id="stat-followers-count" class="text-lg md:text-xl font-extrabold text-slate-900">@Model.FollowersCount</div>
+                        <div class="text-xs font-medium text-slate-400">Followers</div>
+                    </div>
+                    <div>
+                        <div class="text-lg md:text-xl font-extrabold text-slate-900">@Model.FollowingCount</div>
+                        <div class="text-xs font-medium text-slate-400">Following</div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
+        <!-- Instagram Tabs Navigation -->
+        <div class="flex items-center justify-center border-b border-slate-200 mb-6 gap-8 text-xs font-bold tracking-wider uppercase">
+            <button type="button" onclick="switchProfileTab('posts')" id="tab-btn-posts"
+                    class="py-3 border-b-2 border-slate-900 text-slate-900 flex items-center gap-2 transition">
+                <ion-icon name="grid-outline" class="text-base"></ion-icon>
+                <span>Posts (@Model.Posts.Count)</span>
+            </button>
+
+            @if (Model.IsSelf)
+            {
+                <button type="button" onclick="switchProfileTab('saved')" id="tab-btn-saved"
+                        class="py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-700 flex items-center gap-2 transition">
+                    <ion-icon name="bookmark-outline" class="text-base"></ion-icon>
+                    <span>Saved (@Model.SavedPosts.Count)</span>
+                </button>
+            }
+
+            <button type="button" onclick="switchProfileTab('friends')" id="tab-btn-friends"
+                    class="py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-700 flex items-center gap-2 transition">
+                <ion-icon name="people-outline" class="text-base"></ion-icon>
+                <span>Friends (@Model.Friends.Count)</span>
+            </button>
+        </div>
+
+        <!-- Tab 1: Posts Grid (Instagram 3-Column Square Layout) -->
+        <div id="tab-content-posts" class="tab-content">
+            @if (Model.Posts.Any())
+            {
+                <div class="grid grid-cols-3 gap-2 md:gap-4">
+                    @foreach (var post in Model.Posts)
+                    {
+                        <div class="relative group aspect-square rounded-2xl overflow-hidden bg-slate-900 shadow-sm cursor-pointer">
+                            @if (!string.IsNullOrEmpty(post.ImageUrl))
+                            {
+                                <img src="@ResolveImageUrl(post.ImageUrl)" alt="Post media" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
+                            }
+                            else
+                            {
+                                <div class="w-full h-full bg-gradient-to-br from-indigo-50 to-slate-100 p-4 flex flex-col justify-center items-center text-center">
+                                    <p class="text-xs font-semibold text-slate-700 line-clamp-4">@post.Content</p>
+                                </div>
+                            }
+
+                            <!-- Instagram Hover Overlay -->
+                            <a asp-controller="Home" asp-action="Details" asp-route-postId="@post.Id"
+                               class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-6 text-white font-bold text-sm">
+                                <span class="flex items-center gap-1.5">
+                                    <ion-icon name="heart" class="text-xl"></ion-icon>
+                                    @post.Likes.Count
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <ion-icon name="chatbubble" class="text-xl"></ion-icon>
+                                    @post.Comments.Count
+                                </span>
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-16 bg-white rounded-3xl border border-slate-200/80 p-8">
+                    <div class="w-16 h-16 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                        <ion-icon name="camera-outline" class="text-3xl"></ion-icon>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800">No Posts Yet</h3>
+                    <p class="text-xs text-slate-400 mt-1">When posts are published, they will appear here.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Tab 2: Saved Posts Grid (Only for profile owner) -->
+        @if (Model.IsSelf)
+        {
+            <div id="tab-content-saved" class="tab-content hidden">
+                @if (Model.SavedPosts.Any())
+                {
+                    <div class="grid grid-cols-3 gap-2 md:gap-4">
+                        @foreach (var post in Model.SavedPosts)
+                        {
+                            <div class="relative group aspect-square rounded-2xl overflow-hidden bg-slate-900 shadow-sm cursor-pointer">
+                                @if (!string.IsNullOrEmpty(post.ImageUrl))
+                                {
+                                    <img src="@ResolveImageUrl(post.ImageUrl)" alt="Post media" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
+                                }
+                                else
+                                {
+                                    <div class="w-full h-full bg-gradient-to-br from-indigo-50 to-slate-100 p-4 flex flex-col justify-center items-center text-center">
+                                        <p class="text-xs font-semibold text-slate-700 line-clamp-4">@post.Content</p>
+                                    </div>
+                                }
+
+                                <a asp-controller="Home" asp-action="Details" asp-route-postId="@post.Id"
+                                   class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-6 text-white font-bold text-sm">
+                                    <span class="flex items-center gap-1.5">
+                                        <ion-icon name="heart" class="text-xl"></ion-icon>
+                                        @post.Likes.Count
+                                    </span>
+                                    <span class="flex items-center gap-1.5">
+                                        <ion-icon name="chatbubble" class="text-xl"></ion-icon>
+                                        @post.Comments.Count
+                                    </span>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-16 bg-white rounded-3xl border border-slate-200/80 p-8">
+                        <div class="w-16 h-16 mx-auto rounded-full bg-amber-50 flex items-center justify-center text-amber-500 mb-3">
+                            <ion-icon name="bookmark" class="text-3xl"></ion-icon>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-800">No Saved Posts</h3>
+                        <p class="text-xs text-slate-400 mt-1">Bookmark posts to save photos and videos that you want to see again.</p>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Tab 3: Friends Grid -->
+        <div id="tab-content-friends" class="tab-content hidden">
+            @if (Model.Friends.Any())
+            {
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    @foreach (var friend in Model.Friends)
+                    {
+                        string friendAvatar = !string.IsNullOrEmpty(friend.ProfilePictureUrl)
+                            ? (friend.ProfilePictureUrl.StartsWith("http") ? friend.ProfilePictureUrl : Url.Content("~/" + friend.ProfilePictureUrl.TrimStart('/')))
+                            : Url.Content("~/images/avatar/user.png");
+
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col items-center text-center">
+                            <a asp-controller="Users" asp-action="Details" asp-route-userId="@friend.Id">
+                                <img src="@friendAvatar" class="w-16 h-16 rounded-full object-cover ring-2 ring-slate-100 shadow-2xs mb-2" />
+                                <h4 class="font-bold text-slate-900 text-sm hover:text-primary transition line-clamp-1">@friend.Name</h4>
+                                <p class="text-xs text-slate-400">@@@friend.UserName</p>
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-16 bg-white rounded-3xl border border-slate-200/80 p-8">
+                    <div class="w-16 h-16 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                        <ion-icon name="people-outline" class="text-3xl"></ion-icon>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800">No Friends Yet</h3>
+                    <p class="text-xs text-slate-400 mt-1">Connect with other members to share posts and stories.</p>
+                </div>
+            }
+        </div>
+
+    </div>
 </main>
+
+<script>
+    function switchProfileTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('[id^="tab-btn-"]').forEach(btn => {
+            btn.classList.remove('border-slate-900', 'text-slate-900');
+            btn.classList.add('border-transparent', 'text-slate-400');
+        });
+
+        const activeContent = document.getElementById('tab-content-' + tabName);
+        const activeBtn = document.getElementById('tab-btn-reset') || document.getElementById('tab-btn-' + tabName);
+        if (activeContent) activeContent.classList.remove('hidden');
+        if (activeBtn) {
+            activeBtn.classList.remove('border-transparent', 'text-slate-400');
+            activeBtn.classList.add('border-slate-900', 'text-slate-900');
+        }
+    }
+
+    async function toggleFollow(targetUserId) {
+        const btn = document.getElementById('btn-follow');
+        const btnText = document.getElementById('follow-btn-text');
+        const statCounter = document.getElementById('stat-followers-count');
+
+        try {
+            const response = await fetch('/Follow/ToggleFollow?targetUserId=' + targetUserId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                if (data.isFollowing) {
+                    btn.classList.remove('bg-primary', 'text-white', 'hover:bg-primary-dark');
+                    btn.classList.add('bg-slate-100', 'text-slate-800', 'hover:bg-rose-50', 'hover:text-rose-600');
+                    btnText.innerText = 'Following';
+                    btn.querySelector('ion-icon').setAttribute('name', 'checkmark-outline');
+                } else {
+                    btn.classList.remove('bg-slate-100', 'text-slate-800', 'hover:bg-rose-50', 'hover:text-rose-600');
+                    btn.classList.add('bg-primary', 'text-white', 'hover:bg-primary-dark');
+                    btnText.innerText = 'Follow';
+                    btn.querySelector('ion-icon').setAttribute('name', 'person-add-outline');
+                }
+                if (statCounter) statCounter.innerText = data.followersCount;
+            }
+        } catch (err) {
+            console.error('Follow error:', err);
+        }
+    }
+</script>

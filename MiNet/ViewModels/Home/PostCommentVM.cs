@@ -1,8 +1,9 @@
-﻿namespace MiNet.ViewModels.Home
+namespace MiNet.ViewModels.Home
 {
     public class PostCommentVM
     {
         public int PostId { get; set; }
-        public string Content { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public int? ParentCommentId { get; set; }
     }
 }

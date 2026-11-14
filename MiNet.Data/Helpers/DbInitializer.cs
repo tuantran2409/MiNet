@@ -325,6 +325,79 @@ namespace MiNet.Data.Helpers
                 await appDbContext.UserInteractions.AddRangeAsync(interactions);
                 await appDbContext.SaveChangesAsync();
             }
+
+            // 5. Seed UserFollows (1-way follow system)
+            if (await appDbContext.UserFollows.CountAsync() < 10 && users.Count >= 6)
+            {
+                var random = new Random(101);
+                var follows = new List<UserFollow>();
+                for (int i = 0; i < users.Count; i++)
+                {
+                    for (int j = 0; j < users.Count; j++)
+                    {
+                        if (i != j && random.Next(10) < 4)
+                        {
+                            follows.Add(new UserFollow
+                            {
+                                FollowerId = users[i].Id,
+                                FollowingId = users[j].Id,
+                                CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 15))
+                            });
+                        }
+                    }
+                }
+                await appDbContext.UserFollows.AddRangeAsync(follows);
+                await appDbContext.SaveChangesAsync();
+            }
+
+            // 6. Seed sample stories & views (Rainbow ring test)
+            if (await appDbContext.Stories.CountAsync() < 4 && users.Count >= 4)
+            {
+                var sampleStories = new List<Story>
+                {
+                    new Story { UserId = users[0].Id, ImageUrl = "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80", DateCreated = DateTime.UtcNow.AddHours(-3) },
+                    new Story { UserId = users[1].Id, ImageUrl = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80", DateCreated = DateTime.UtcNow.AddHours(-6) },
+                    new Story { UserId = users[2].Id, ImageUrl = "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80", DateCreated = DateTime.UtcNow.AddHours(-10) },
+                    new Story { UserId = users[3].Id, ImageUrl = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80", DateCreated = DateTime.UtcNow.AddHours(-15) }
+                };
+                await appDbContext.Stories.AddRangeAsync(sampleStories);
+                await appDbContext.SaveChangesAsync();
+
+                if (sampleStories.Any())
+                {
+                    await appDbContext.StoryViews.AddAsync(new StoryView { StoryId = sampleStories[0].Id, ViewerId = users[2].Id, ViewedAt = DateTime.UtcNow.AddHours(-1) });
+                    await appDbContext.StoryViews.AddAsync(new StoryView { StoryId = sampleStories[0].Id, ViewerId = users[3].Id, ViewedAt = DateTime.UtcNow.AddMinutes(-30) });
+                    await appDbContext.SaveChangesAsync();
+                }
+            }
+
+            // 7. Seed nested comments (Replies tree)
+            if (await appDbContext.Comments.CountAsync() < 5 && allPosts.Any() && users.Count >= 3)
+            {
+                var targetPost = allPosts.First();
+                var rootComment = new Comment
+                {
+                    PostId = targetPost.Id,
+                    UserId = users[1].Id,
+                    Content = "Bài viết chia sẻ rất hay và chi tiết! Cảm ơn tác giả @TuấnTrần.",
+                    DateCreated = DateTime.UtcNow.AddHours(-5),
+                    DateUpdated = DateTime.UtcNow.AddHours(-5)
+                };
+                await appDbContext.Comments.AddAsync(rootComment);
+                await appDbContext.SaveChangesAsync();
+
+                var replyComment = new Comment
+                {
+                    PostId = targetPost.Id,
+                    UserId = users[0].Id,
+                    ParentCommentId = rootComment.Id,
+                    Content = "@Alex Rất vui vì bài viết hữu ích với bạn! Mình sẽ ra thêm phần tiếp theo.",
+                    DateCreated = DateTime.UtcNow.AddHours(-4),
+                    DateUpdated = DateTime.UtcNow.AddHours(-4)
+                };
+                await appDbContext.Comments.AddAsync(replyComment);
+                await appDbContext.SaveChangesAsync();
+            }
         }
     }
 }

@@ -1,35 +1,92 @@
-﻿@model List<Story>
+@using System.Security.Claims
+@using MiNet.Data.Models
+@model List<Story>
 
-@* stories *@
-<div class="mb-8">
-    <h3 class="font-extrabold text-2xl  text-black hidden">Stories</h3>
+@{
+    int loggedInUserId = int.TryParse(User?.FindFirstValue(ClaimTypes.NameIdentifier), out int uid) ? uid : 0;
 
-    <div class="relative" tabindex="-1" uk-slider="auto play: true;finite: true" uk-lightbox="">
-        <div class="py-5 uk-slider-container">
-            <ul class="uk-slider-items w-[calc(100%+14px)]" uk-scrollspy="target: > li; cls: uk-animation-scale-up; delay: 20;repeat:true">
+    string ResolveImageUrl(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return string.Empty;
+        if (url.StartsWith("http://") || url.StartsWith("https://")) return url;
+        return Url.Content("~/" + url.TrimStart('/'));
+    }
+}
 
-                <li class="md:pr-3" uk-scrollspy-class="uk-animation-fade">
-                    <div class="md:w-16 md:h-16 w-12 h-12 rounded-full relative border-2 border-dashed grid place-items-center bg-slate-200 border-slate-300 shrink-0"
-                         uk-toggle="target: #create-story">
-                        <ion-icon name="camera" class="text-2xl"></ion-icon>
+<div class="mb-6">
+    <div class="relative" tabindex="-1" uk-slider="auto play: false; finite: true" uk-lightbox="animation: slide">
+        <div class="py-2 uk-slider-container">
+            <ul class="uk-slider-items w-[calc(100%+14px)] flex items-center gap-3">
+
+                <!-- Add Story Item -->
+                <li class="shrink-0">
+                    <div class="flex flex-col items-center gap-1.5 cursor-pointer group" uk-toggle="target: #create-story">
+                        <div class="w-16 h-16 md:w-[68px] md:h-[68px] rounded-full border-2 border-dashed border-indigo-400/80 bg-indigo-50/60 hover:bg-indigo-100/80 transition flex items-center justify-center text-primary group-hover:scale-105 duration-200">
+                            <ion-icon name="camera-outline" class="text-2xl"></ion-icon>
+                        </div>
+                        <span class="text-[11px] font-semibold text-slate-700 max-w-[68px] truncate">Add Story</span>
                     </div>
                 </li>
 
+                <!-- Story List -->
                 @foreach (var story in Model)
                 {
-                    <li class="md:pr-3 pr-2 hover:scale-[1.15] hover:-rotate-2 duration-300">
-                        <a href="@story.ImageUrl">
-                            <div class="md:w-16 md:h-16 w-12 h-12 relative md:border-4 border-2 shadow border-white rounded-full overflow-hidden">
-                                <img src="@story.User.ProfilePictureUrl" />
+                    bool hasViewed = story.Views.Any(v => v.ViewerId == loggedInUserId);
+                    bool isSelf = story.UserId == loggedInUserId;
+
+                    string storyAvatar = !string.IsNullOrEmpty(story.User?.ProfilePictureUrl)
+                        ? (story.User.ProfilePictureUrl.StartsWith("http") ? story.User.ProfilePictureUrl : Url.Content("~/" + story.User.ProfilePictureUrl.TrimStart('/')))
+                        : Url.Content("~/images/avatar/user.png");
+
+                    string ringClass = hasViewed
+                        ? "bg-slate-200"
+                        : "bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 shadow-sm";
+
+                    <li class="shrink-0 story-item" data-story-id="@story.Id">
+                        <a href="@ResolveImageUrl(story.ImageUrl)"
+                           data-caption="@(story.User?.Name ?? "Story") • @story.DateCreated.ToString("HH:mm dd/MM")"
+                           onclick="recordStoryView(@story.Id, this)"
+                           class="flex flex-col items-center gap-1.5 group select-none block">
+                            
+                            <!-- Avatar with Rainbow Ring -->
+                            <div class="relative p-[2.5px] rounded-full transition duration-300 group-hover:scale-105 @ringClass ring-container">
+                                <div class="w-16 h-16 md:w-[64px] md:h-[64px] rounded-full p-[2px] bg-white overflow-hidden">
+                                    <img src="@storyAvatar" class="w-full h-full object-cover rounded-full" alt="@(story.User?.Name ?? "User")" />
+                                </div>
+
+                                @if (isSelf && story.Views.Count > 0)
+                                {
+                                    <span class="absolute -bottom-1 -right-1 bg-slate-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 ring-2 ring-white">
+                                        <ion-icon name="eye-outline"></ion-icon>
+                                        @story.Views.Count
+                                    </span>
+                                }
                             </div>
+
+                            <span class="text-[11px] font-medium text-slate-700 max-w-[68px] truncate">
+                                @(story.User?.Name ?? "User")
+                            </span>
                         </a>
                     </li>
                 }
-
-                <li class="md:pr-3 pr-2">
-                    <div class="md:w-16 md:h-16 w-12 h-12 bg-slate-200/60 rounded-full animate-pulse"></div>
-                </li>
             </ul>
         </div>
     </div>
 </div>
+
+<script>
+    if (typeof recordStoryView === 'undefined') {
+        window.recordStoryView = async function(storyId, linkEl) {
+            try {
+                await fetch('/Stories/RecordView?storyId=' + storyId, { method: 'POST' });
+                const ring = linkEl.querySelector('.ring-container');
+                if (ring) {
+                    ring.classList.remove('bg-gradient-to-tr', 'from-amber-400', 'via-rose-500', 'to-purple-600', 'shadow-sm');
+                    ring.classList.add('bg-slate-200');
+                }
+            } catch (e) {
+                console.error('Record story view error:', e);
+            }
+        };
+    }
+</script>

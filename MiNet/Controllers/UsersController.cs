@@ -6,6 +6,9 @@ using MiNet.ViewModels.Users;
 using MiNet.Data.Helpers.Constants;
 using MiNet.Data.Services;
 using MiNet.Data.Models;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace MiNet.Controllers
 {
@@ -15,12 +18,21 @@ namespace MiNet.Controllers
         private readonly IUsersService _userService;
         private readonly UserManager<User> _userManager;
         private readonly IFriendsService _friendsService;
+        private readonly IFollowService _followService;
+        private readonly IPostsService _postsService;
 
-        public UsersController(IUsersService usersService, UserManager<User> userManager, IFriendsService friendsService)
+        public UsersController(
+            IUsersService usersService,
+            UserManager<User> userManager,
+            IFriendsService friendsService,
+            IFollowService followService,
+            IPostsService postsService)
         {
             _userService = usersService;
             _userManager = userManager;
             _friendsService = friendsService;
+            _followService = followService;
+            _postsService = postsService;
         }
 
         public IActionResult Index()
@@ -31,22 +43,42 @@ namespace MiNet.Controllers
         public async Task<IActionResult> Details(int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return NotFound();
+
+            var currentUserId = GetUserId() ?? 0;
+            bool isSelf = (currentUserId == userId);
+
             var userPosts = await _userService.GetUserPosts(userId);
             var roles = await _userManager.GetRolesAsync(user);
             var friendships = await _friendsService.GetFriendsAsync(userId);
-            
             var friendsList = friendships.Select(f => f.SenderId == userId ? f.Receiver : f.Sender).ToList();
 
-            var userProfileVM = new GetUserProfileVM()
+            int followersCount = await _followService.GetFollowersCountAsync(userId);
+            int followingCount = await _followService.GetFollowingCountAsync(userId);
+            bool isFollowing = !isSelf && await _followService.IsFollowingAsync(currentUserId, userId);
+            bool isFriend = !isSelf && friendships.Any(f => f.SenderId == currentUserId || f.ReceiverId == currentUserId);
+
+            List<Post> savedPosts = new List<Post>();
+            if (isSelf)
+            {
+                savedPosts = await _postsService.GetAllFavoritedPostsAsync(currentUserId);
+            }
+
+            var userProfileVM = new GetUserProfileVM
             {
                 User = user,
                 Posts = userPosts,
+                SavedPosts = savedPosts,
                 Roles = roles,
-                Friends = friendsList
+                Friends = friendsList,
+                FollowersCount = followersCount,
+                FollowingCount = followingCount,
+                IsFollowing = isFollowing,
+                IsFriend = isFriend,
+                IsSelf = isSelf
             };
 
             return View(userProfileVM);
-
         }
     }
 }

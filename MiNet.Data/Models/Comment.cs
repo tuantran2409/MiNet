@@ -1,24 +1,26 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MiNet.Data.Models
 {
     public class Comment
     {
         public int Id { get; set; }
-        public String Content {  get; set; }
+        public string Content { get; set; } = string.Empty;
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdated { get; set; }
 
-        //Foreign keys
+        // Foreign keys
         public int PostId { get; set; }
         public int UserId { get; set; }
 
-        //Navigation properties
-        public Post Post { get; set; }
-        public User User { get; set; }  
+        // Self-referencing for nested comments
+        public int? ParentCommentId { get; set; }
+        public Comment? ParentComment { get; set; }
+        public ICollection<Comment> Replies { get; set; } = new List<Comment>();
+
+        // Navigation properties
+        public Post Post { get; set; } = null!;
+        public User User { get; set; } = null!;
     }
 }
