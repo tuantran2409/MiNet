@@ -506,6 +506,24 @@ namespace MiNet.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("MiNet.Data.Models.UserBlock", b =>
+                {
+                    b.Property<int>("BlockerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BlockedId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("BlockerId", "BlockedId");
+
+                    b.HasIndex("BlockedId");
+
+                    b.ToTable("UserBlocks");
+                });
+
             modelBuilder.Entity("MiNet.Data.Models.UserFollow", b =>
                 {
                     b.Property<int>("FollowerId")
@@ -889,6 +907,25 @@ namespace MiNet.Migrations
                     b.Navigation("Story");
 
                     b.Navigation("Viewer");
+                });
+
+            modelBuilder.Entity("MiNet.Data.Models.UserBlock", b =>
+                {
+                    b.HasOne("MiNet.Data.Models.User", "Blocked")
+                        .WithMany()
+                        .HasForeignKey("BlockedId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MiNet.Data.Models.User", "Blocker")
+                        .WithMany()
+                        .HasForeignKey("BlockerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Blocked");
+
+                    b.Navigation("Blocker");
                 });
 
             modelBuilder.Entity("MiNet.Data.Models.UserFollow", b =>

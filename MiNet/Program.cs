@@ -31,6 +31,7 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IUserInteractionService, UserInteractionService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<IBlockService, BlockService>();
 
 // Identity configuration
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>

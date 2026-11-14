@@ -14,3 +14,4 @@ namespace MiNet.Data.Services
         Task<List<User>> GetFollowingAsync(int userId);
     }
 }
+

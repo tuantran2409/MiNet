@@ -8,3 +8,4 @@ namespace MiNet.ViewModels.Home
         public ReactionType ReactionType { get; set; } = ReactionType.Like;
     }
 }
+

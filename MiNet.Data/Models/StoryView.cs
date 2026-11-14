@@ -13,3 +13,4 @@ namespace MiNet.Data.Models
         public DateTime ViewedAt { get; set; } = DateTime.UtcNow;
     }
 }
+

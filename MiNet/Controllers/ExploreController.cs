@@ -5,6 +5,7 @@ using MiNet.Controllers.Base;
 using MiNet.Data;
 using MiNet.Data.Services;
 using MiNet.ViewModels.Explore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,6 +31,17 @@ namespace MiNet.Controllers
                 SelectedTag = tag
             };
 
+            var currentUserId = GetUserId();
+            var blockedUserIds = new List<int>();
+            if (currentUserId.HasValue)
+            {
+                blockedUserIds = await _context.UserBlocks
+                    .AsNoTracking()
+                    .Where(b => b.BlockerId == currentUserId.Value || b.BlockedId == currentUserId.Value)
+                    .Select(b => b.BlockerId == currentUserId.Value ? b.BlockedId : b.BlockerId)
+                    .ToListAsync();
+            }
+
             // Top trending hashtags
             vm.TrendingTags = await _context.Hashtags
                 .AsNoTracking()
@@ -37,10 +49,10 @@ namespace MiNet.Controllers
                 .Take(12)
                 .ToListAsync();
 
-            // Popular creators (users with most posts)
+            // Popular creators (users with most posts, excluding blocked users)
             vm.PopularCreators = await _context.Users
                 .AsNoTracking()
-                .Where(u => !u.IsDeleted && u.Posts.Any())
+                .Where(u => !u.IsDeleted && !blockedUserIds.Contains(u.Id) && u.Posts.Any())
                 .OrderByDescending(u => u.Posts.Count)
                 .Take(6)
                 .ToListAsync();
@@ -51,7 +63,7 @@ namespace MiNet.Controllers
                 var cleanTag = tag.Trim().TrimStart('#').ToLower();
                 vm.Posts = await _context.Posts
                     .AsNoTracking()
-                    .Where(p => !p.IsDeleted && !p.IsPrivate && p.NrOfReports < 5 && p.Content.ToLower().Contains("#" + cleanTag))
+                    .Where(p => !p.IsDeleted && !p.IsPrivate && !blockedUserIds.Contains(p.UserId) && p.NrOfReports < 5 && p.Content.ToLower().Contains("#" + cleanTag))
                     .Include(p => p.User)
                     .Include(p => p.Likes)
                     .Include(p => p.Comments)
@@ -61,7 +73,9 @@ namespace MiNet.Controllers
             }
             else
             {
-                vm.Posts = await _postsService.GetExplorePostsAsync(30);
+                vm.Posts = (await _postsService.GetExplorePostsAsync(30))
+                    .Where(p => !blockedUserIds.Contains(p.UserId))
+                    .ToList();
             }
 
             return View(vm);

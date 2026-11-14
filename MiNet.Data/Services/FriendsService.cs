@@ -21,21 +21,33 @@ namespace MiNet.Data.Services
         public async Task<List<UserWithFriendsCountDto>> GetSuggestedFriendsAsync(int userId)
         {
             var existingFriendIds = await _context.Friendships
+                .AsNoTracking()
                 .Where(n => n.SenderId == userId || n.ReceiverId == userId)
                 .Select(n => n.SenderId == userId ? n.ReceiverId : n.SenderId)
                 .ToListAsync();
 
             //pending requests
             var pendingRequestIds = await _context.FriendRequests
+                .AsNoTracking()
                 .Where(n => (n.SenderId == userId || n.ReceiverId == userId) && n.Status == FriendshipStatus.Pending)
                 .Select(n => n.SenderId == userId ? n.ReceiverId : n.SenderId)
                 .ToListAsync();
 
-            //get suggeted friends
+            //blocked users
+            var blockedUserIds = await _context.UserBlocks
+                .AsNoTracking()
+                .Where(b => b.BlockerId == userId || b.BlockedId == userId)
+                .Select(b => b.BlockerId == userId ? b.BlockedId : b.BlockerId)
+                .ToListAsync();
+
+            //get suggested friends
             var suggestedFriends = await _context.Users
+                .AsNoTracking()
                 .Where(n => n.Id != userId &&
+                !n.IsDeleted &&
                 !existingFriendIds.Contains(n.Id) &&
-                !pendingRequestIds.Contains(n.Id))
+                !pendingRequestIds.Contains(n.Id) &&
+                !blockedUserIds.Contains(n.Id))
                 .Select(u => new UserWithFriendsCountDto()
                 {
                     User = u,

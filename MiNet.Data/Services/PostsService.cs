@@ -48,10 +48,20 @@ namespace MiNet.Data.Services
                 .Select(f => f.FollowingId)
                 .ToListAsync();
 
+            // 1c. Get blocked user IDs (both directions)
+            var blockedUserIds = await _context.UserBlocks
+                .AsNoTracking()
+                .Where(b => b.BlockerId == currentUserId || b.BlockedId == currentUserId)
+                .Select(b => b.BlockerId == currentUserId ? b.BlockedId : b.BlockerId)
+                .ToListAsync();
+
             // 2. Fetch candidate pool
             var candidatePosts = await _context.Posts
                 .AsNoTracking()
-                .Where(n => (!n.IsPrivate || n.UserId == currentUserId || friendIds.Contains(n.UserId)) && n.Reports.Count < 5 && !n.IsDeleted)
+                .Where(n => (!n.IsPrivate || n.UserId == currentUserId || friendIds.Contains(n.UserId)) 
+                            && !blockedUserIds.Contains(n.UserId) 
+                            && n.Reports.Count < 5 
+                            && !n.IsDeleted)
                 .Include(n => n.User)
                 .Include(n => n.Likes).ThenInclude(l => l.User)
                 .Include(n => n.Favorites)

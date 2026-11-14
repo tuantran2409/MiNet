@@ -28,6 +28,7 @@ namespace MiNet.Data
         public DbSet<UserInteraction> UserInteractions { get; set; }
         public DbSet<UserFollow> UserFollows { get; set; }
         public DbSet<StoryView> StoryViews { get; set; }
+        public DbSet<UserBlock> UserBlocks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -213,6 +214,22 @@ namespace MiNet.Data
                 .HasOne(sv => sv.Viewer)
                 .WithMany()
                 .HasForeignKey(sv => sv.ViewerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // UserBlock configurations
+            modelBuilder.Entity<UserBlock>()
+                .HasKey(ub => new { ub.BlockerId, ub.BlockedId });
+
+            modelBuilder.Entity<UserBlock>()
+                .HasOne(ub => ub.Blocker)
+                .WithMany()
+                .HasForeignKey(ub => ub.BlockerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserBlock>()
+                .HasOne(ub => ub.Blocked)
+                .WithMany()
+                .HasForeignKey(ub => ub.BlockedId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
