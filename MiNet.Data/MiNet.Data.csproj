@@ -18,6 +18,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Features" Version="9.0.14" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.0" />
+    <PackageReference Include="Microsoft.ML" Version="6.0.0" />
+    <PackageReference Include="Microsoft.ML.Recommender" Version="0.24.0" />
   </ItemGroup>
 
 </Project>

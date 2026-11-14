@@ -1,147 +1,288 @@
-﻿@using MiNet.Data.Services
+@using MiNet.Data.Services
 @model AdminDashboardViewModel
-
 @{
-    ViewData["Title"] = "Admin Dashboard";
+    ViewData["Title"] = "Admin Intelligence & Control Center";
+    var aiStatus = Model.AIModelStatus;
 }
 
 <main id="site__main" class="flex-1 overflow-y-auto">
-    <div class="p-6 bg-gray-50 min-h-screen">
+    <div class="p-6 md:p-8 bg-slate-50 min-h-screen max-w-[1400px] mx-auto space-y-6">
 
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p class="text-gray-600 mt-2">Quản lý nền tảng MiNet</p>
+        <!-- Top Welcome Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-600/30">
+                        <ion-icon name="shield-checkmark" class="text-2xl"></ion-icon>
+                    </div>
+                    MiNet System Administration
+                </h1>
+                <p class="text-slate-500 text-sm mt-1">Platform telemetry, user moderation & AI Matrix Factorization engine control</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Production Core Online
+                </span>
+            </div>
+        </div>
+
+        <!-- Alert messages -->
+        @if (TempData["AISuccess"] != null)
+        {
+            <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl flex items-center gap-3 shadow-xs animate-fade-in">
+                <ion-icon name="checkmark-circle" class="text-2xl text-emerald-600 shrink-0"></ion-icon>
+                <div class="text-sm font-semibold">@TempData["AISuccess"]</div>
+            </div>
+        }
+        @if (TempData["AIError"] != null)
+        {
+            <div class="bg-rose-50 border border-rose-200 text-rose-800 px-5 py-4 rounded-2xl flex items-center gap-3 shadow-xs">
+                <ion-icon name="alert-circle" class="text-2xl text-rose-600 shrink-0"></ion-icon>
+                <div class="text-sm font-semibold">@TempData["AIError"]</div>
+            </div>
+        }
+
+        <!-- ==================== ML.NET AI Recommendation Dashboard Card ==================== -->
+        <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-2xl shadow-xl p-6 md:p-8 text-white relative overflow-hidden border border-indigo-900/50">
+            <!-- Background glow accent -->
+            <div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-indigo-800/40">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-indigo-500/30 text-indigo-300 border border-indigo-400/30">
+                            Core AI Subsystem
+                        </span>
+                        @if (aiStatus != null && aiStatus.IsTrained)
+                        {
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active (In-Memory Engine)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Pending Retrain
+                            </span>
+                        }
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                        ML.NET Matrix Factorization Recommendation Engine
+                    </h2>
+                    <p class="text-indigo-200/80 text-xs md:text-sm">
+                        Collaborative filtering based on implicit UserInteractions weights (View: 1.0, Like: 3.0, Comment: 5.0, Save: 7.0).
+                    </p>
+                </div>
+
+                <!-- Retrain Trigger Button -->
+                <form asp-controller="Admin" asp-action="RetrainAIModel" method="post" id="retrainForm" class="shrink-0">
+                    <button type="submit" id="retrainBtn"
+                            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-200 transform active:scale-95 cursor-pointer">
+                        <ion-icon name="sync-outline" id="retrainIcon" class="text-xl"></ion-icon>
+                        <span id="retrainText">Retrain AI Model Now</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- AI Telemetry Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <!-- Metric 1: RMSE -->
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-xs">
+                    <p class="text-xs text-indigo-300 font-medium">Root Mean Squared Error (RMSE)</p>
+                    <p class="text-2xl font-black text-white mt-1">
+                        @(aiStatus != null && aiStatus.IsTrained ? aiStatus.Rmse.ToString("F4") : "N/A")
+                    </p>
+                    <span class="text-[11px] text-emerald-400 flex items-center gap-1 mt-1">
+                        Lower is better
+                    </span>
+                </div>
+
+                <!-- Metric 2: R^2 Score -->
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-xs">
+                    <p class="text-xs text-indigo-300 font-medium">Coefficient of Determination (R²)</p>
+                    <p class="text-2xl font-black text-white mt-1">
+                        @(aiStatus != null && aiStatus.IsTrained ? aiStatus.RSquared.ToString("F4") : "N/A")
+                    </p>
+                    <span class="text-[11px] text-sky-400 flex items-center gap-1 mt-1">
+                        Closer to 1.0 is optimal
+                    </span>
+                </div>
+
+                <!-- Metric 3: Total Interaction Samples -->
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-xs">
+                    <p class="text-xs text-indigo-300 font-medium">Total Training Samples</p>
+                    <p class="text-2xl font-black text-white mt-1">
+                        @(aiStatus != null ? aiStatus.TotalSamples.ToString() : "0")
+                    </p>
+                    <span class="text-[11px] text-indigo-300 flex items-center gap-1 mt-1">
+                        Implicit interaction data
+                    </span>
+                </div>
+
+                <!-- Metric 4: Last Trained Timestamp -->
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-xs">
+                    <p class="text-xs text-indigo-300 font-medium">Last Trained Timestamp</p>
+                    <p class="text-sm font-bold text-white mt-2 truncate">
+                        @(aiStatus?.LastTrainedAt.HasValue == true ? aiStatus.LastTrainedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") + " UTC" : "Pending execution")
+                    </p>
+                    <span class="text-[11px] text-indigo-300 flex items-center gap-1 mt-1">
+                        Persistence: MinetRecModel.zip
+                    </span>
+                </div>
+            </div>
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <!-- Total Users Card -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-medium">Tổng Người Dùng</p>
-                        <p class="text-3xl font-bold text-gray-900 mt-2">@Model.TotalUsers</p>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Members</p>
+                        <p class="text-3xl font-extrabold text-slate-900 mt-2">@Model.TotalUsers</p>
                     </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <ion-icon class="text-2xl text-blue-600" name="people-outline"></ion-icon>
+                    <div class="w-12 h-12 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center text-2xl">
+                        <ion-icon name="people"></ion-icon>
                     </div>
                 </div>
             </div>
 
             <!-- Total Posts Card -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-medium">Tổng Bài Viết</p>
-                        <p class="text-3xl font-bold text-gray-900 mt-2">@Model.TotalPosts</p>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Published Posts</p>
+                        <p class="text-3xl font-extrabold text-slate-900 mt-2">@Model.TotalPosts</p>
                     </div>
-                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <ion-icon class="text-2xl text-green-600" name="document-text-outline"></ion-icon>
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl">
+                        <ion-icon name="newspaper"></ion-icon>
                     </div>
                 </div>
             </div>
 
             <!-- Total Reports Card -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-medium">Tổng Báo Cáo</p>
-                        <p class="text-3xl font-bold text-gray-900 mt-2">@Model.TotalReports</p>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Pending Flags</p>
+                        <p class="text-3xl font-extrabold text-rose-600 mt-2">@Model.TotalReports</p>
                     </div>
-                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                        <ion-icon class="text-2xl text-red-600" name="warning-outline"></ion-icon>
+                    <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-2xl">
+                        <ion-icon name="flag"></ion-icon>
                     </div>
                 </div>
             </div>
 
             <!-- Online Users Card -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center">
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-medium">Đang Online</p>
-                        <p class="text-3xl font-bold text-gray-900 mt-2">@Model.OnlineUsers</p>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Active Sessions</p>
+                        <p class="text-3xl font-extrabold text-purple-600 mt-2">@Model.OnlineUsers</p>
                     </div>
-                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <ion-icon class="text-2xl text-purple-600" name="radio-button-on-outline"></ion-icon>
+                    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-2xl">
+                        <ion-icon name="pulse"></ion-icon>
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-            <a href="@Url.Action("ReportedPosts")" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Bài Viết Bị Báo Cáo</h3>
-                        <p class="text-2xl font-bold text-red-600 mt-2">@Model.ReportedPosts.Count</p>
-                    </div>
-                    <ion-icon class="text-4xl text-red-400" name="flag-outline"></ion-icon>
+        <!-- Quick Access Navigation -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <a href="@Url.Action("ReportedPosts")" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 hover:shadow-md hover:border-slate-300 transition group flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 group-hover:text-primary transition">Flagged Content Moderation</h3>
+                    <p class="text-xs text-slate-500 mt-1">Review user community reports & take action</p>
+                    <span class="inline-block mt-3 px-3 py-1 bg-rose-50 text-rose-700 text-xs font-bold rounded-lg">
+                        @Model.ReportedPosts.Count Pending Cases
+                    </span>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-slate-50 group-hover:bg-rose-50 text-slate-400 group-hover:text-rose-600 flex items-center justify-center text-2xl transition">
+                    <ion-icon name="shield-outline"></ion-icon>
                 </div>
             </a>
 
-            <a href="@Url.Action("Users")" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Quản Lý Người Dùng</h3>
-                        <p class="text-2xl font-bold text-blue-600 mt-2">@Model.TotalUsers</p>
-                    </div>
-                    <ion-icon class="text-4xl text-blue-400" name="person-circle-outline"></ion-icon>
+            <a href="@Url.Action("Users")" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 hover:shadow-md hover:border-slate-300 transition group flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 group-hover:text-primary transition">Account Management</h3>
+                    <p class="text-xs text-slate-500 mt-1">Lockout, suspend or inspect user activity</p>
+                    <span class="inline-block mt-3 px-3 py-1 bg-sky-50 text-sky-700 text-xs font-bold rounded-lg">
+                        @Model.TotalUsers Total Accounts
+                    </span>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-slate-50 group-hover:bg-sky-50 text-slate-400 group-hover:text-sky-600 flex items-center justify-center text-2xl transition">
+                    <ion-icon name="people-outline"></ion-icon>
                 </div>
             </a>
 
-            <a href="@Url.Action("Analytics")" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Analytics</h3>
-                        <p class="text-2xl font-bold text-green-600 mt-2">Chi Tiết</p>
-                    </div>
-                    <ion-icon class="text-4xl text-green-400" name="bar-chart-outline"></ion-icon>
+            <a href="@Url.Action("Analytics")" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 hover:shadow-md hover:border-slate-300 transition group flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 group-hover:text-primary transition">Growth & Analytics</h3>
+                    <p class="text-xs text-slate-500 mt-1">Platform engagement, top creators & charts</p>
+                    <span class="inline-block mt-3 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg">
+                        Detailed Metrics
+                    </span>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-slate-50 group-hover:bg-emerald-50 text-slate-400 group-hover:text-emerald-600 flex items-center justify-center text-2xl transition">
+                    <ion-icon name="stats-chart-outline"></ion-icon>
                 </div>
             </a>
-
         </div>
 
-        <!-- Top Posts -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="p-6 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-900">Bài Viết Phổ Biến Nhất</h2>
+        <!-- Top Posts Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Highest Engagement Posts</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Ranked by composite interaction volume</p>
+                </div>
+                <span class="text-xs font-bold text-primary bg-sky-50 px-3 py-1 rounded-lg">Top 10 Pool</span>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50 border-b border-gray-200">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-100 text-xs font-bold uppercase tracking-wider text-slate-400">
                         <tr>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Người Tạo</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Nội Dung</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Lượt Thích</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Thời Gian</th>
+                            <th class="px-6 py-3.5">Author</th>
+                            <th class="px-6 py-3.5">Content Snippet</th>
+                            <th class="px-6 py-3.5 text-center">Likes</th>
+                            <th class="px-6 py-3.5 text-center">Comments</th>
+                            <th class="px-6 py-3.5 text-right">Published</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-100 text-sm">
                         @foreach (var post in Model.TopPosts)
                         {
                             var likesCount = post.Likes?.Count ?? 0;
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                <td class="px-6 py-4 text-sm text-gray-900">
-                                    <div class="flex items-center">
-                                        <img src="@(!string.IsNullOrEmpty(post.User.ProfilePictureUrl) ?
-                                                                                               Url.Content("~/" + post.User.ProfilePictureUrl) :
-                                                                                               Url.Content("~/images/avatar/user.png"))"
-                                         class="w-8 h-8 rounded-full mr-3" />
-                                    <span>@post.User.Name</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-700">@post.Content.Substring(0, Math.Min(50, post.Content.Length))...</td>
-                            <td class="px-6 py-4 text-sm text-gray-900">
-                                <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">❤️ @likesCount</span>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-500">@post.DateCreated.ToString("dd/MM/yyyy")</td>
-                        </tr>
-                                                }
+                            var commentsCount = post.Comments?.Count ?? 0;
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="px-6 py-4 font-semibold text-slate-900 whitespace-nowrap">
+                                    <div class="flex items-center gap-3">
+                                        <img src="@(!string.IsNullOrEmpty(post.User?.ProfilePictureUrl) ? Url.Content(post.User.ProfilePictureUrl) : Url.Content("~/images/avatar/user.png"))"
+                                             class="w-9 h-9 rounded-full object-cover ring-1 ring-slate-200" />
+                                        <div>
+                                            <div class="font-bold">@post.User?.Name</div>
+                                            <div class="text-xs text-slate-400 font-normal">@@@post.User?.UserName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600 max-w-md">
+                                    <p class="line-clamp-2">@post.Content</p>
+                                </td>
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600">
+                                        <ion-icon name="heart"></ion-icon> @likesCount
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-600">
+                                        <ion-icon name="chatbubble"></ion-icon> @commentsCount
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right text-xs text-slate-400 whitespace-nowrap">
+                                    @post.DateCreated.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
@@ -149,3 +290,17 @@
 
     </div>
 </main>
+
+<script>
+    document.getElementById('retrainForm')?.addEventListener('submit', function() {
+        const btn = document.getElementById('retrainBtn');
+        const icon = document.getElementById('retrainIcon');
+        const text = document.getElementById('retrainText');
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            icon.classList.add('animate-spin');
+            text.innerText = 'Training Model with ML.NET...';
+        }
+    });
+</script>

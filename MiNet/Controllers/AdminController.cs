@@ -14,12 +14,18 @@ namespace MiNet.Controllers
     public class AdminController : Controller
     {
         private readonly IAdminService _adminService;
+        private readonly IRecommendationService _recommendationService;
         private readonly UserManager<User> _userManager;
         private readonly AppDbContext _context;
 
-        public AdminController(IAdminService adminService, UserManager<User> userManager, AppDbContext context)
+        public AdminController(
+            IAdminService adminService,
+            IRecommendationService recommendationService,
+            UserManager<User> userManager,
+            AppDbContext context)
         {
             _adminService = adminService;
+            _recommendationService = recommendationService;
             _userManager = userManager;
             _context = context;  
         }
@@ -28,7 +34,23 @@ namespace MiNet.Controllers
         public async Task<IActionResult> Index()
         {
             var dashboardStats = await _adminService.GetDashboardStatsAsync();
+            dashboardStats.AIModelStatus = _recommendationService.GetModelStatus();
             return View(dashboardStats);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RetrainAIModel()
+        {
+            var result = await _recommendationService.TrainModelAsync();
+            if (result.IsTrained)
+            {
+                TempData["AISuccess"] = $"Huấn luyện thành công! RMSE: {result.Rmse:F4} | R²: {result.RSquared:F4} | Mẫu tương tác: {result.TotalSamples} | Thời gian: {result.TrainingDuration.TotalSeconds:F2}s";
+            }
+            else
+            {
+                TempData["AIError"] = $"Chưa thể huấn luyện: {result.StatusMessage}";
+            }
+            return RedirectToAction("Index");
         }
 
         // ==================== Reported Posts ====================
@@ -130,6 +152,5 @@ namespace MiNet.Controllers
             ViewBag.stats = stats;
             return View();
         }
-
     }
 }

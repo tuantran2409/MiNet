@@ -1,10 +1,6 @@
-﻿using MiNet.Data.Dtos;
+using MiNet.Data.Dtos;
 using MiNet.Data.Models;
-using Microsoft.AspNetCore.Http;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MiNet.Data.Services
@@ -12,10 +8,11 @@ namespace MiNet.Data.Services
     public interface IPostsService
     {
         Task<List<Post>> GetAllPostsAsync(int loggedInUserId);
-        Task<Post> GetPostByIdAsync(int postId);
+        Task<List<Post>> GetPersonalizedFeedAsync(int currentUserId, int page = 1, int pageSize = 30);
+        Task<Post?> GetPostByIdAsync(int postId);
         Task<List<Post>> GetAllFavoritedPostsAsync(int loggedInUserId);
         Task<Post> CreatePostAsync(Post post);
-        Task<Post> RemovePostAsync(int postId);
+        Task<Post?> RemovePostAsync(int postId);
 
         Task AddPostCommentAsync(Comment comment);
         Task RemovePostCommentAsync(int commentId);
@@ -24,5 +21,7 @@ namespace MiNet.Data.Services
         Task<GetNotificationDto> TogglePostFavoriteAsync(int postId, int userId);
         Task TogglePostVisibilityAsync(int postId, int userId);
         Task ReportPostAsync(int postId, int userId);
+
+        Task<List<Post>> GetExplorePostsAsync(int count = 30);
     }
 }

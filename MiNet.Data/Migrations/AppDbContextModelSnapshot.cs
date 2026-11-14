@@ -405,12 +405,21 @@ namespace MiNet.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CoverImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("InterestsJson")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -466,6 +475,41 @@ namespace MiNet.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("MiNet.Data.Models.UserInteraction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DwellTimeSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InteractionType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<float>("WeightScore")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserInteractions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -774,6 +818,25 @@ namespace MiNet.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MiNet.Data.Models.UserInteraction", b =>
+                {
+                    b.HasOne("MiNet.Data.Models.Post", "Post")
+                        .WithMany("Interactions")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MiNet.Data.Models.User", "User")
+                        .WithMany("Interactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
@@ -838,6 +901,8 @@ namespace MiNet.Migrations
 
                     b.Navigation("Favorites");
 
+                    b.Navigation("Interactions");
+
                     b.Navigation("Likes");
 
                     b.Navigation("Reports");
@@ -848,6 +913,8 @@ namespace MiNet.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Favorites");
+
+                    b.Navigation("Interactions");
 
                     b.Navigation("Likes");
 

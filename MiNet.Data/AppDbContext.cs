@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using MiNet.Data.Models;
-using System.Diagnostics;
 
 namespace MiNet.Data
 {
@@ -13,7 +12,7 @@ namespace MiNet.Data
         }
 
         public DbSet<Post> Posts { get; set; }
-        public DbSet<User> Users { get; set; }
+        public new DbSet<User> Users { get; set; }
         public DbSet<Like> Likes { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
@@ -26,7 +25,7 @@ namespace MiNet.Data
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<ConversationMember> ConversationMembers { get; set; }
         public DbSet<Message> Messages { get; set; }
-
+        public DbSet<UserInteraction> UserInteractions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,7 +40,6 @@ namespace MiNet.Data
                 .WithOne(p => p.User)
                 .HasForeignKey(p => p.UserId);
 
-
             //Likes
             modelBuilder.Entity<Like>()
                 .HasKey(l => new { l.PostId, l.UserId });
@@ -55,10 +53,10 @@ namespace MiNet.Data
             modelBuilder.Entity<Like>()
                 .HasOne(l => l.User)
                 .WithMany(u => u.Likes)
-                .HasForeignKey(l =>l.UserId)
+                .HasForeignKey(l => l.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //Commments
+            //Comments
             modelBuilder.Entity<Comment>()
                 .HasOne(l => l.Post)
                 .WithMany(p => p.Comments)
@@ -162,6 +160,19 @@ namespace MiNet.Data
                 .WithMany()
                 .HasForeignKey(m => m.SenderId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // UserInteraction configurations
+            modelBuilder.Entity<UserInteraction>()
+                .HasOne(ui => ui.User)
+                .WithMany(u => u.Interactions)
+                .HasForeignKey(ui => ui.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserInteraction>()
+                .HasOne(ui => ui.Post)
+                .WithMany(p => p.Interactions)
+                .HasForeignKey(ui => ui.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

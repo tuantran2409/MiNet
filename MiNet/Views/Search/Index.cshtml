@@ -1,0 +1,149 @@
+@using MiNet.ViewModels.Search
+@model SearchVM
+@{
+    ViewData["Title"] = string.IsNullOrEmpty(Model.Query) ? "Search" : $"Search: {Model.Query}";
+}
+
+<main id="site__main" class="2xl:ml-[--w-side] xl:ml-[--w-side-sm] p-4 h-[calc(100vh-var(--m-top))] mt-[--m-top]">
+    <div class="max-w-[1000px] mx-auto py-4">
+        <!-- Search Header Bar -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 mb-6">
+            <form method="get" asp-controller="Search" asp-action="Index" class="relative flex items-center">
+                <ion-icon name="search-outline" class="absolute left-4 text-2xl text-slate-400"></ion-icon>
+                <input type="text" name="q" value="@Model.Query" placeholder="Search people, hashtags, or topics on MiNet..."
+                       class="w-full pl-12 pr-28 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none font-medium text-slate-800" />
+                <button type="submit" class="absolute right-2 px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition shadow-sm">
+                    Search
+                </button>
+            </form>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Query))
+            {
+                <!-- Tab Navigation -->
+                <div class="flex items-center gap-2 mt-5 border-t border-slate-100 pt-4 overflow-x-auto text-sm font-semibold">
+                    <a href="@Url.Action("Index", "Search", new { q = Model.Query, tab = "all" })"
+                       class="px-4 py-2 rounded-xl transition-all flex items-center gap-2 @(Model.ActiveTab == "all" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                        <ion-icon name="apps-outline"></ion-icon> All Results
+                    </a>
+                    <a href="@Url.Action("Index", "Search", new { q = Model.Query, tab = "users" })"
+                       class="px-4 py-2 rounded-xl transition-all flex items-center gap-2 @(Model.ActiveTab == "users" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                        <ion-icon name="people-outline"></ion-icon> People (@Model.Users.Count)
+                    </a>
+                    <a href="@Url.Action("Index", "Search", new { q = Model.Query, tab = "posts" })"
+                       class="px-4 py-2 rounded-xl transition-all flex items-center gap-2 @(Model.ActiveTab == "posts" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                        <ion-icon name="newspaper-outline"></ion-icon> Posts (@Model.Posts.Count)
+                    </a>
+                    <a href="@Url.Action("Index", "Search", new { q = Model.Query, tab = "tags" })"
+                       class="px-4 py-2 rounded-xl transition-all flex items-center gap-2 @(Model.ActiveTab == "tags" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100")">
+                        <ion-icon name="pricetag-outline"></ion-icon> Hashtags (@Model.Hashtags.Count)
+                    </a>
+                </div>
+            }
+        </div>
+
+        @if (string.IsNullOrWhiteSpace(Model.Query))
+        {
+            <!-- Empty query hint -->
+            <div class="bg-white rounded-2xl p-12 text-center border border-slate-200/80 shadow-sm">
+                <div class="w-16 h-16 mx-auto mb-4 bg-sky-50 text-primary rounded-full flex items-center justify-center text-3xl">
+                    <ion-icon name="search"></ion-icon>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-1">Find what you love on MiNet</h3>
+                <p class="text-slate-500 text-sm max-w-md mx-auto">Explore amazing photographers, tech discussions, culinary adventures, and trending hashtags by typing in the search bar above.</p>
+            </div>
+        }
+        else
+        {
+            <!-- Results Container -->
+            <div class="space-y-6">
+                <!-- Users Section -->
+                @if ((Model.ActiveTab == "all" || Model.ActiveTab == "users") && Model.Users.Any())
+                {
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+                        <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <ion-icon name="people" class="text-primary text-xl"></ion-icon> People
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            @foreach (var user in Model.Users)
+                            {
+                                <div class="flex items-center justify-between p-3.5 bg-slate-50/70 hover:bg-slate-100/80 rounded-xl transition-all border border-slate-100">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <img src="@(!string.IsNullOrEmpty(user.ProfilePictureUrl) ? Url.Content(user.ProfilePictureUrl) : Url.Content("~/images/avatar/user.png"))"
+                                             class="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm" />
+                                        <div class="min-w-0">
+                                            <a asp-controller="Users" asp-action="Details" asp-route-userId="@user.Id"
+                                               class="font-bold text-slate-800 hover:text-primary transition line-clamp-1">
+                                                @user.Name
+                                            </a>
+                                            <p class="text-xs text-slate-400">@@@user.UserName</p>
+                                            @if (!string.IsNullOrEmpty(user.Bio))
+                                            {
+                                                <p class="text-xs text-slate-600 mt-1 line-clamp-1">@user.Bio</p>
+                                            }
+                                        </div>
+                                    </div>
+                                    <a asp-controller="Users" asp-action="Details" asp-route-userId="@user.Id"
+                                       class="ml-3 shrink-0 px-3.5 py-1.5 text-xs font-semibold bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-900 hover:text-white transition shadow-2xs">
+                                        View
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Hashtags Section -->
+                @if ((Model.ActiveTab == "all" || Model.ActiveTab == "tags") && Model.Hashtags.Any())
+                {
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+                        <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <ion-icon name="pricetag" class="text-primary text-xl"></ion-icon> Hashtags
+                        </h4>
+                        <div class="flex flex-wrap gap-2.5">
+                            @foreach (var tag in Model.Hashtags)
+                            {
+                                <a asp-controller="Explore" asp-action="Index" asp-route-tag="@tag.Name"
+                                   class="px-4 py-2 bg-slate-100 hover:bg-primary hover:text-white text-slate-800 rounded-xl text-sm font-semibold transition-all shadow-2xs flex items-center gap-1.5">
+                                    <span class="text-primary group-hover:text-white font-bold">#</span>@tag.Name
+                                    <span class="text-xs text-slate-400 ml-1">(@tag.Count)</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Posts Section -->
+                @if ((Model.ActiveTab == "all" || Model.ActiveTab == "posts") && Model.Posts.Any())
+                {
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+                        <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <ion-icon name="newspaper" class="text-primary text-xl"></ion-icon> Posts Matching "@Model.Query"
+                        </h4>
+                        <div class="space-y-4">
+                            @foreach (var post in Model.Posts)
+                            {
+                                <partial name="Home/_Post" model="post"
+                                         view-data='new ViewDataDictionary(ViewData) { { "ShowAllComment", false } }' />
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- No results state -->
+                @if (!Model.Users.Any() && !Model.Posts.Any() && !Model.Hashtags.Any())
+                {
+                    <div class="bg-white rounded-2xl p-12 text-center border border-slate-200/80 shadow-sm">
+                        <div class="w-16 h-16 mx-auto mb-4 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center text-3xl">
+                            <ion-icon name="alert-circle-outline"></ion-icon>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-1">No results found for "@Model.Query"</h3>
+                        <p class="text-slate-500 text-sm max-w-sm mx-auto">Try searching with different keywords, check for typos, or browse trending topics on Explore.</p>
+                        <a asp-controller="Explore" asp-action="Index" class="inline-block mt-4 px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition shadow-sm">
+                            Go to Explore
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</main>

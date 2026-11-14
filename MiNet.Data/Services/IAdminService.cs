@@ -1,7 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MiNet.Data.Models;
 
@@ -20,7 +18,7 @@ namespace MiNet.Data.Services
 
         // User Management
         Task<List<User>> GetAllUsersAsync();
-        Task<User> GetUserByIdAsync(int userId);
+        Task<User?> GetUserByIdAsync(int userId);
         Task LockUserAsync(int userId);
         Task UnlockUserAsync(int userId);
         Task DeleteUserAsync(int userId);
@@ -45,5 +43,6 @@ namespace MiNet.Data.Services
         public List<Post> TopPosts { get; set; } = new List<Post>();
         public int NewUsersThisMonth { get; set; }
         public int NewPostsThisMonth { get; set; }
+        public ModelMetricsDto? AIModelStatus { get; set; }
     }
 }

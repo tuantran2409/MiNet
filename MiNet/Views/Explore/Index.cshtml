@@ -1,0 +1,128 @@
+@using MiNet.ViewModels.Explore
+@model ExploreVM
+@{
+    ViewData["Title"] = "Explore Trending";
+}
+
+<main id="site__main" class="2xl:ml-[--w-side] xl:ml-[--w-side-sm] p-4 h-[calc(100vh-var(--m-top))] mt-[--m-top]">
+    <div class="max-w-[1100px] mx-auto py-4 space-y-6">
+
+        <!-- Top Header & Trending Tags -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                        <ion-icon name="compass" class="text-primary text-3xl"></ion-icon>
+                        Explore & Discover
+                    </h2>
+                    <p class="text-slate-500 text-sm mt-0.5">Top trending visuals, community favorites & vibrant discussions</p>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.SelectedTag))
+                {
+                    <a asp-controller="Explore" asp-action="Index" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+                        <span>Tag: #@Model.SelectedTag</span>
+                        <ion-icon name="close-circle" class="text-base"></ion-icon>
+                    </a>
+                }
+            </div>
+
+            <!-- Trending Tag Pills -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <a asp-controller="Explore" asp-action="Index"
+                   class="px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all shadow-2xs @(string.IsNullOrEmpty(Model.SelectedTag) ? "bg-slate-900 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700")">
+                    🔥 All Trending
+                </a>
+                @foreach (var tag in Model.TrendingTags)
+                {
+                    bool isSelected = string.Equals(Model.SelectedTag, tag.Name, StringComparison.OrdinalIgnoreCase);
+                    <a asp-controller="Explore" asp-action="Index" asp-route-tag="@tag.Name"
+                       class="px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all shadow-2xs flex items-center gap-1 @(isSelected ? "bg-primary text-white" : "bg-slate-100 hover:bg-primary/10 hover:text-primary text-slate-700")">
+                        <span>#@tag.Name</span>
+                        <span class="text-[10px] opacity-70">(@tag.Count)</span>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Featured Popular Creators -->
+        @if (Model.PopularCreators.Any())
+        {
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                    <ion-icon name="sparkles" class="text-amber-500"></ion-icon> Popular Creators
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                    @foreach (var creator in Model.PopularCreators)
+                    {
+                        <a asp-controller="Users" asp-action="Details" asp-route-userId="@creator.Id"
+                           class="flex flex-col items-center text-center p-3 rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100 group">
+                            <div class="relative w-14 h-14 mb-2">
+                                <img src="@(!string.IsNullOrEmpty(creator.ProfilePictureUrl) ? Url.Content(creator.ProfilePictureUrl) : Url.Content("~/images/avatar/user.png"))"
+                                     class="w-full h-full rounded-full object-cover ring-2 ring-primary/20 group-hover:ring-primary transition shadow-sm" />
+                            </div>
+                            <span class="text-xs font-bold text-slate-800 line-clamp-1 group-hover:text-primary transition">@creator.Name</span>
+                            <span class="text-[11px] text-slate-400 line-clamp-1">@@@creator.UserName</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Instagram 3-Column Square Media Grid -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+            <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <ion-icon name="images-outline" class="text-primary text-xl"></ion-icon>
+                @(string.IsNullOrEmpty(Model.SelectedTag) ? "Featured Visuals" : $"Visuals tagged with #{Model.SelectedTag}")
+            </h3>
+
+            @if (Model.Posts.Any())
+            {
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                    @foreach (var post in Model.Posts)
+                    {
+                        <div class="group relative aspect-square rounded-xl overflow-hidden bg-slate-900 shadow-sm cursor-pointer">
+                            <img src="@Url.Content(post.ImageUrl ?? "~/images/placeholders/default-post.jpg")"
+                                 alt="Explore post"
+                                 class="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
+
+                            <!-- Dark Overlay with Likes & Comments on hover -->
+                            <a asp-controller="Home" asp-action="Details" asp-route-postId="@post.Id"
+                               class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-4 text-white">
+                                <!-- Top Author Tag -->
+                                <div class="flex items-center gap-2 text-xs font-semibold">
+                                    <img src="@(!string.IsNullOrEmpty(post.User?.ProfilePictureUrl) ? Url.Content(post.User.ProfilePictureUrl) : Url.Content("~/images/avatar/user.png"))"
+                                         class="w-6 h-6 rounded-full object-cover ring-1 ring-white" />
+                                    <span class="line-clamp-1">@post.User?.Name</span>
+                                </div>
+
+                                <!-- Center Stats -->
+                                <div class="flex items-center justify-center gap-6 text-base font-bold">
+                                    <div class="flex items-center gap-1.5">
+                                        <ion-icon name="heart" class="text-red-500 text-xl"></ion-icon>
+                                        <span>@post.Likes.Count</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <ion-icon name="chatbubble" class="text-white text-lg"></ion-icon>
+                                        <span>@post.Comments.Count</span>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Snippet -->
+                                <p class="text-xs text-white/80 line-clamp-1">
+                                    @post.Content
+                                </p>
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-16 text-slate-400">
+                    <ion-icon name="image-outline" class="text-5xl mb-2"></ion-icon>
+                    <p class="font-medium text-sm">No media posts found in this category.</p>
+                </div>
+            }
+        </div>
+    </div>
+</main>

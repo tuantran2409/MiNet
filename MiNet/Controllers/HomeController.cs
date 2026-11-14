@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
 using MiNet.Controllers.Base;
 using MiNet.Data.Helpers.Constants;
 using MiNet.Data.Helpers.Enums;
 using MiNet.Data.Models;
 using MiNet.ViewModels.Home;
 using MiNet.Data.Services;
+using System;
+using System.Threading.Tasks;
 
 namespace MiNet.Controllers
 {
@@ -18,27 +19,30 @@ namespace MiNet.Controllers
         private readonly IHashtagsService _hashtagsService;
         private readonly IFilesService _filesService;
         private readonly INotificationsService _notificationsService;
+        private readonly IUserInteractionService _interactionService;
 
-        public HomeController(ILogger<HomeController> logger,
+        public HomeController(
+            ILogger<HomeController> logger,
             IPostsService postsService,
             IHashtagsService hashtagsService,
             IFilesService filesService,
-            INotificationsService notificationsService)
+            INotificationsService notificationsService,
+            IUserInteractionService interactionService)
         {
             _logger = logger;
             _postsService = postsService;
             _hashtagsService = hashtagsService;
             _filesService = filesService;
             _notificationsService = notificationsService;
+            _interactionService = interactionService;
         }
 
         public async Task<IActionResult> Index()
         {
-            //get the loggedin User Id
             var loggedInUserId = GetUserId();
             if (loggedInUserId == null) return RedirectToLogin();
 
-            var allPosts = await _postsService.GetAllPostsAsync(loggedInUserId.Value);
+            var allPosts = await _postsService.GetPersonalizedFeedAsync(loggedInUserId.Value);
 
             return View(allPosts);
         }
@@ -46,37 +50,48 @@ namespace MiNet.Controllers
         public async Task<IActionResult> Details(int postId)
         {
             var post = await _postsService.GetPostByIdAsync(postId);
+            if (post == null) return NotFound();
+
+            var userId = GetUserId();
+            if (userId.HasValue)
+            {
+                await _interactionService.RecordInteractionAsync(userId.Value, postId, InteractionType.View, 5);
+            }
+
             return View(post);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RecordInteraction(int postId, int dwellSeconds = 3)
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue) return Unauthorized();
+
+            await _interactionService.RecordInteractionAsync(userId.Value, postId, InteractionType.View, dwellSeconds);
+            return Ok(new { success = true });
         }
 
         [HttpPost]
         public async Task<IActionResult> CreatePost(PostVM post) 
         {
-            //get the logged in user
             var loggedInUserId = GetUserId();
             if (loggedInUserId == null) return RedirectToLogin();
 
-            //get the upload img url
-            var imageUploadPath = await _filesService.UploadImageAsync(post.Image,ImageFileType.PostImage);
+            var imageUploadPath = await _filesService.UploadImageAsync(post.Image, ImageFileType.PostImage);
 
-            //create a new post
             var newPost = new Post
             {
                 Content = post.Content,
-                DateCreated = DateTime.Now,
-                DateUpdate = DateTime.Now,
+                DateCreated = DateTime.UtcNow,
+                DateUpdate = DateTime.UtcNow,
                 ImageUrl = imageUploadPath,
                 NrOfReports = 0,
                 UserId = loggedInUserId.Value
             };
 
-            //add the post to the database
             await _postsService.CreatePostAsync(newPost);
-
-            //find and store the hashtags
             await _hashtagsService.ProcessHashtagsForNewPostAsync(post.Content);
 
-            //redirect to the index page
             return RedirectToAction("Index");
         }
 
@@ -84,16 +99,14 @@ namespace MiNet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TogglePostLike(PostLikeVM postLikeVM)
         {
-            //get the loggedIn user id
             var userId = GetUserId();
             var userName = GetUserFullName();
             if (userId == null) return RedirectToLogin();
 
             var result = await _postsService.TogglePostLikeAsync(postLikeVM.PostId, userId.Value);
-
             var post = await _postsService.GetPostByIdAsync(postLikeVM.PostId);
 
-            if (result.SendNotification && userId != post.UserId)
+            if (result.SendNotification && userId != post?.UserId && post != null)
                 await _notificationsService.AddNewNotificationAsync(post.UserId, NotificationType.Like, userName, postLikeVM.PostId);
 
             return PartialView("Home/_Post", post);
@@ -102,16 +115,14 @@ namespace MiNet.Controllers
         [HttpPost]
         public async Task<IActionResult> TogglePostFavorite(PostFavoriteVM postFavoriteVM)
         {
-            //get the logged in user
             var userId = GetUserId();
             var userName = GetUserFullName();
             if (userId == null) return RedirectToLogin();
 
             var result = await _postsService.TogglePostFavoriteAsync(postFavoriteVM.PostId, userId.Value);
-
             var post = await _postsService.GetPostByIdAsync(postFavoriteVM.PostId);
 
-            if (result.SendNotification && userId != post.UserId)
+            if (result.SendNotification && userId != post?.UserId && post != null)
                 await _notificationsService.AddNewNotificationAsync(post.UserId, NotificationType.Favorite, userName, postFavoriteVM.PostId);
 
             return PartialView("Home/_Post", post);
@@ -120,7 +131,6 @@ namespace MiNet.Controllers
         [HttpPost]
         public async Task<IActionResult> TogglePostVisibility(PostVisibilityVM postVisibilityVM)
         {
-            //get the logged in user
             var loggedInUserId = GetUserId();
             if (loggedInUserId == null) return RedirectToLogin();
 
@@ -133,26 +143,24 @@ namespace MiNet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddPostComment(PostCommentVM postCommentVM) 
         {
-            //get the logged in user
             var userId = GetUserId();
             var userName = GetUserFullName();
             if (userId == null) return RedirectToLogin();
 
-            //create a comment object
-            var newComment = new Comment()
+            var newComment = new Comment
             {
                 UserId = userId.Value,
                 PostId = postCommentVM.PostId,
                 Content = postCommentVM.Content,
-                DateCreated = DateTime.Now,
-                DateUpdated = DateTime.Now
+                DateCreated = DateTime.UtcNow,
+                DateUpdated = DateTime.UtcNow
             };
 
             await _postsService.AddPostCommentAsync(newComment);
 
             var post = await _postsService.GetPostByIdAsync(postCommentVM.PostId);
 
-            if (userId != post.UserId)
+            if (userId != post?.UserId && post != null)
                 await _notificationsService.AddNewNotificationAsync(post.UserId, NotificationType.Comment, userName, postCommentVM.PostId);
 
             return PartialView("Home/_Post", post);
@@ -183,7 +191,10 @@ namespace MiNet.Controllers
         public async Task<IActionResult> PostRemove(PostRemoveVM postRemoveVM)
         {
             var postRemoved = await _postsService.RemovePostAsync(postRemoveVM.PostId);
-            await _hashtagsService.ProcessHashtagsForRemovedPostAsync(postRemoved.Content);
+            if (postRemoved != null)
+            {
+                await _hashtagsService.ProcessHashtagsForRemovedPostAsync(postRemoved.Content);
+            }
 
             return RedirectToAction("Index");
         }

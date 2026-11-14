@@ -1,141 +1,183 @@
-﻿@model List<Post>;
+@model List<Post>;
+@{
+    ViewData["Title"] = "Personalized Feed";
+}
 
-<main id="site__main" class="2xl:ml-[--w-side]  xl:ml-[--w-side-sm] p-2.5 h-[calc(100vh-var(--m-top))] mt-[--m-top]">
-    <div class="lg:flex 2xl:gap-16 gap-12 max-w-[1065px] mx-auto" id="js-oversized">
-        <div class="max-w-[680px] mx-auto">
-            @* stories *@
+<main id="site__main" class="2xl:ml-[--w-side] xl:ml-[--w-side-sm] p-3 md:p-5 h-[calc(100vh-var(--m-top))] mt-[--m-top]">
+    <div class="lg:flex 2xl:gap-12 gap-8 max-w-[1100px] mx-auto" id="js-oversized">
+        
+        <!-- Left Main Column (Stories + Create Status + Feed) -->
+        <div class="max-w-[620px] w-full mx-auto space-y-5">
+            <!-- 24h Stories Tray -->
             @await Component.InvokeAsync("Stories")
 
-            @* status *@
-            <div class="md:max-w-[580px] mx-auto flex-1 xl:space-y-6 space-y-3">
-                <div class="bg-white rounded-xl shadow-sm md:p-4 p-2 space-y-4 text-sm font-medium border1">
-                    <div class="flex items-center md:gap-3 gap-1">
-                        <div class="flex-1 bg-slate-100 hover:bg-opacity-80 transition-all rounded-lg cursor-pointer" uk-toggle="target: #create-status">
-                            <div class="py-2.5 text-center">What do you have in mind?</div>
+            <!-- What's on your mind Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                        <ion-icon name="person" class="text-xl"></ion-icon>
+                    </div>
+                    <div class="flex-1 bg-slate-100/80 hover:bg-slate-100 text-slate-500 rounded-xl px-4 py-2.5 text-sm font-medium cursor-pointer transition"
+                         uk-toggle="target: #create-status">
+                        What's on your mind? Share a story or photo...
+                    </div>
+                    <button type="button" uk-toggle="target: #create-status"
+                            class="p-2.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-600 transition flex items-center justify-center shrink-0">
+                        <ion-icon name="image-outline" class="text-2xl"></ion-icon>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feed Status Bar -->
+            <div class="flex items-center justify-between px-2 text-xs font-semibold text-slate-500">
+                <span class="flex items-center gap-1.5">
+                    <ion-icon name="sparkles" class="text-amber-500 text-sm"></ion-icon>
+                    Personalized AI Feed (Collaborative Filtering)
+                </span>
+                <span class="text-slate-400">@Model.Count posts loaded</span>
+            </div>
+
+            <!-- Feed Posts Container -->
+            <div id="posts-container" class="space-y-5">
+                @if (Model.Count == 0)
+                {
+                    <div class="bg-white rounded-2xl p-12 text-center border border-slate-200/80 shadow-sm">
+                        <div class="w-16 h-16 mx-auto mb-4 bg-sky-50 text-primary rounded-full flex items-center justify-center text-3xl">
+                            <ion-icon name="sparkles-outline"></ion-icon>
                         </div>
-                        <div class="cursor-pointer hover:bg-opacity-80 p-1 px-1.5 rounded-xl transition-all bg-pink-100/60 hover:bg-pink-100" uk-toggle="target: #create-status">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 stroke-pink-600 fill-pink-200/70" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2c3e50" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M15 8h.01" />
-                                <path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9 -9 9s-9 -1.8 -9 -9s1.8 -9 9 -9z" />
-                                <path d="M3.5 15.5l4.5 -4.5c.928 -.893 2.072 -.893 3 0l5 5" />
-                                <path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l2.5 2.5" />
-                            </svg>
+                        <h3 class="text-lg font-bold text-slate-800 mb-1">Your Feed is Fresh!</h3>
+                        <p class="text-slate-500 text-sm max-w-sm mx-auto">Follow other creators, explore trending hashtags, or create your first post to activate AI recommendations.</p>
+                        <div class="mt-4 flex items-center justify-center gap-3">
+                            <button type="button" uk-toggle="target: #create-status" class="px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-sm hover:bg-primary-dark transition">
+                                Create Post
+                            </button>
+                            <a asp-controller="Explore" asp-action="Index" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                                Explore Content
+                            </a>
                         </div>
                     </div>
-                </div>
-
-                @* no post placeholder *@
-                <div id="posts-container" class="space-y-4">
-                    @if (Model.Count == 0)
+                }
+                else
+                {
+                    @foreach (var post in Model)
                     {
-                        <div class="bg-white rounded-xl shadow-sm md:p-4 p-2 space-y-4 text-sm font-medium border1" style="width: 580px;">
-                            Currently, there are no posts available. Would you like to create the first one?
-                        </div>
+                        <partial name="Home/_Post" model="post"
+                                 view-data='new ViewDataDictionary(ViewData) { { "ShowAllComment", false } }' />
                     }
-                    @* load all post *@
-                    else
-                    {
-                        @foreach (var post in Model)
-                        {
-                            @* post *@
-                            <partial name="Home/_Post"
-                                     model="post"
-                                     view-data='new ViewDataDictionary(ViewData) { { "ShowAllComment", false } }'></partial>
-                            }
-                        }
-                </div>
+                }
             </div>
         </div>
-        <div class="flex-1">
-            <div class="lg:space-y-4 lg:pb-8 max-lg:grid sm:grid-cols-2 max-lg:gap-6">
-                <div class="box p-5 px-6">
-                    @await Component.InvokeAsync("SuggestedFriends")
-                </div>
-                <div class="box p-5 px-6 border1">
-                    @await Component.InvokeAsync("Hashtags")
-                </div>
+
+        <!-- Right Sidebar Widgets -->
+        <div class="hidden lg:block lg:w-[360px] space-y-5">
+            <!-- Suggested Friends Widget -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+                @await Component.InvokeAsync("SuggestedFriends")
+            </div>
+
+            <!-- Trending Hashtags Widget -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
+                @await Component.InvokeAsync("Hashtags")
             </div>
         </div>
+
     </div>
 </main>
 
-<partial name="Modals/_CreateStory" model="new StoryVM()"/>
+<partial name="Modals/_CreateStory" model="new StoryVM()" />
 <partial name="Modals/_CreateStatus" model="new PostVM()" />
 <partial name="Home/_PostDeleteConfirmation" />
 
 <script>
-        function openPostDeleteConfirmation(postId) {
-            UIkit.dropdown('.post-options-dropdown').hide();
-            document.getElementById('deleteConfirmationPostId').value = postId;
-            UIkit.modal('#postDeleteDialog').show();
-        }
+    function openPostDeleteConfirmation(postId) {
+        UIkit.dropdown('.post-options-dropdown').hide();
+        const input = document.getElementById('deleteConfirmationPostId');
+        if (input) input.value = postId;
+        UIkit.modal('#postDeleteDialog').show();
+    }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('posts-container').addEventListener('click', function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        const postsContainer = document.getElementById('posts-container');
+        if (!postsContainer) return;
 
-                const button = event.target.closest('.like-button, .favorite-button')
-                if (button) {
-                    event.preventDefault();
+        // AJAX handling for Like and Favorite buttons
+        postsContainer.addEventListener('click', function (e) {
+            const button = e.target.closest('.like-button, .favorite-button');
+            if (button) {
+                e.preventDefault();
+                const form = button.closest('form');
+                const postIdInput = form.querySelector('input[name="postId"]');
+                if (!postIdInput) return;
 
-                    var form = button.closest('form');
-                    var postId = form.querySelector('input[name="postId"]').value;
-                    var postContainer = document.getElementById('post-' + postId);
+                const postId = postIdInput.value;
+                const postContainer = document.getElementById('post-' + postId);
 
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: new FormData(form),
-                        headers: {}
-                    })
-                        .then(response => response.text())
-                        .then(html => {
-                            postContainer.innerHTML = html;
-                        })
-                        .catch(error => console.error('Error: ', error));
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form)
+                })
+                .then(response => response.text())
+                .then(html => {
+                    if (postContainer) postContainer.outerHTML = html;
+                })
+                .catch(error => console.error('Error toggling reaction: ', error));
+            }
+        });
+
+        // AJAX handling for Comment forms
+        postsContainer.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (form.classList.contains('add-comment-form') || form.classList.contains('remove-comment-form')) {
+                e.preventDefault();
+                const postIdInput = form.querySelector('input[name="postId"]');
+                if (!postIdInput) return;
+
+                const postId = postIdInput.value;
+                const postContainer = document.getElementById('post-' + postId);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form)
+                })
+                .then(response => response.text())
+                .then(html => {
+                    if (postContainer) postContainer.outerHTML = html;
+                })
+                .catch(error => console.error('Error updating comment: ', error));
+            }
+        });
+
+        // ==================== Client-Side AI Dwell Time Tracker ====================
+        // Detects when a post is visible in viewport for > 3 seconds and logs interaction View (+1.0 score)
+        const recordedPosts = new Set();
+        const postDwellTimers = new Map();
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const postId = entry.target.getAttribute('data-post-id');
+                if (!postId || recordedPosts.has(postId)) return;
+
+                if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+                    // Start dwell timer (3 seconds)
+                    const timer = setTimeout(() => {
+                        recordedPosts.add(postId);
+                        fetch('/Home/RecordInteraction', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({ postId: postId, dwellSeconds: 3 })
+                        }).catch(() => {});
+                    }, 3000);
+                    postDwellTimers.set(postId, timer);
+                } else {
+                    // Cancel timer if scrolled away before 3 seconds
+                    if (postDwellTimers.has(postId)) {
+                        clearTimeout(postDwellTimers.get(postId));
+                        postDwellTimers.delete(postId);
+                    }
                 }
             });
+        }, { threshold: [0.5] });
 
-            document.getElementById('posts-container').addEventListener('submit', function () {
-                var form = event.target;
-
-                if (form.classList.contains('add-comment-form')) {
-                    event.preventDefault();
-
-                    var postId = form.querySelector('input[name="postId"]').value;
-                    var postContainer = document.getElementById('post-' + postId);
-
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: new FormData(form),
-                        headers: {}
-                    })
-                        .then(response => response.text())
-                        .then(html => {
-                            postContainer.innerHTML = html;
-                        })
-                        .catch(error => console.error('Error: ', error));
-                }
-
-                if (form.classList.contains('remove-comment-form')) {
-                    event.preventDefault();
-
-                    var postId = form.querySelector('input[name="postId"]').value;
-                    var commentId = form.querySelector('input[name="commentId"]').value;
-
-                    var postContainer = document.getElementById('post-' + postId);
-
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: new FormData(form),
-                        headers: {}
-                    })
-                        .then(response => response.text())
-                        .then(html => {
-                            postContainer.innerHTML = html;
-                        })
-                        .catch(error => console.error('Error: ', error));
-
-                }
-            })
-        })
+        document.querySelectorAll('.post-card').forEach(card => observer.observe(card));
+    });
 </script>

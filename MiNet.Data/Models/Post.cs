@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace MiNet.Data.Models
 {
@@ -6,22 +8,23 @@ namespace MiNet.Data.Models
     {
         [Key]
         public int Id { get; set; }
-        public String Content { get; set; }
-        public String? ImageUrl { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
         public int NrOfReports { get; set; }
         public bool IsPrivate { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdate { get; set; }
         public bool IsDeleted { get; set; }
 
-        //Foreign key
+        // Foreign key
         public int UserId { get; set; }
 
-        //Navigation properties
-        public User User { get; set; }
+        // Navigation properties
+        public User User { get; set; } = null!;
         public ICollection<Like> Likes { get; set; } = new List<Like>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public ICollection<Report> Reports { get; set; } = new List<Report>();
+        public ICollection<UserInteraction> Interactions { get; set; } = new List<UserInteraction>();
     }
 }
