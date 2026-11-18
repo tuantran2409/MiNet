@@ -180,6 +180,19 @@ namespace MiNet.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditPost(PostEditVM postEditVM)
+        {
+            var userId = GetUserId();
+            if (userId == null) return RedirectToLogin();
+
+            var updatedPost = await _postsService.UpdatePostContentAsync(postEditVM.PostId, userId.Value, postEditVM.Content);
+            if (updatedPost == null) return Forbid();
+
+            return PartialView("Home/_Post", updatedPost);
+        }
+
+        [HttpPost]
         public async Task<IActionResult> PostRemove(PostRemoveVM postRemoveVM)
         {
             var postRemoved = await _postsService.RemovePostAsync(postRemoveVM.PostId);

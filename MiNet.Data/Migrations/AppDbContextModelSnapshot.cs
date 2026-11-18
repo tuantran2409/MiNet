@@ -339,6 +339,95 @@ namespace MiNet.Migrations
                     b.ToTable("Posts");
                 });
 
+            modelBuilder.Entity("MiNet.Data.Models.PostRepoShare", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Forks")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Language")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OwnerAvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RepoFullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RepoHtmlUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Stars")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId")
+                        .IsUnique();
+
+                    b.HasIndex("RepoFullName");
+
+                    b.ToTable("PostRepoShares");
+                });
+
+            modelBuilder.Entity("MiNet.Data.Models.RepoBookmark", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Language")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OwnerAvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RepoFullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RepoHtmlUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Stars")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "RepoFullName")
+                        .IsUnique();
+
+                    b.ToTable("RepoBookmarks");
+                });
+
             modelBuilder.Entity("MiNet.Data.Models.Report", b =>
                 {
                     b.Property<int>("PostId")
@@ -744,6 +833,28 @@ namespace MiNet.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MiNet.Data.Models.PostRepoShare", b =>
+                {
+                    b.HasOne("MiNet.Data.Models.Post", "Post")
+                        .WithOne("RepoShare")
+                        .HasForeignKey("MiNet.Data.Models.PostRepoShare", "PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("MiNet.Data.Models.RepoBookmark", b =>
+                {
+                    b.HasOne("MiNet.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MiNet.Data.Models.Report", b =>
                 {
                     b.HasOne("MiNet.Data.Models.Post", "Post")
@@ -839,6 +950,8 @@ namespace MiNet.Migrations
                     b.Navigation("Favorites");
 
                     b.Navigation("Likes");
+
+                    b.Navigation("RepoShare");
 
                     b.Navigation("Reports");
                 });

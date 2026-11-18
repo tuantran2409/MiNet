@@ -15,6 +15,9 @@ namespace MiNet.ViewModels.Explore
         public int? RemainingRequests { get; set; }
         public DateTimeOffset? RateLimitResetAt { get; set; }
 
+        // Repos the current user has already saved (full names) — used to render the Save/Saved state
+        public HashSet<string> SavedRepos { get; set; } = new HashSet<string>();
+
         // Number of days in the selected range — used to highlight the preset button
         public int RangeInDays => (To.Date - From.Date).Days + 1;
 

@@ -15,6 +15,9 @@ namespace MiNet.Data.Services
         Task<Post> GetPostByIdAsync(int postId);
         Task<List<Post>> GetAllFavoritedPostsAsync(int loggedInUserId);
         Task<Post> CreatePostAsync(Post post);
+        Task<Post?> UpdatePostContentAsync(int postId, int userId, string? content);
+        Task<Post> CreateRepoSharePostAsync(int userId, GitHubRepoDto repo, string? comment);
+        Task<bool> HasUserSharedRepoSinceAsync(int userId, string repoFullName, DateTime since);
         Task<Post> RemovePostAsync(int postId);
 
         Task AddPostCommentAsync(Comment comment);

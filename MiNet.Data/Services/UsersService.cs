@@ -42,6 +42,7 @@ namespace MiNet.Data.Services
                 .Include(n => n.Favorites)
                 .Include(n => n.Comments).ThenInclude(n => n.User)
                 .Include(n => n.Reports)
+                .Include(n => n.RepoShare)
                 .OrderByDescending(n => n.DateCreated)
                 .ToListAsync();
 

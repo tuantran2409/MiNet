@@ -6,6 +6,11 @@
             @* stories *@
             @await Component.InvokeAsync("Stories")
 
+            @if (TempData["FeedOk"] is string feedOk)
+            {
+                <div class="md:max-w-[580px] mx-auto mb-3 rounded-xl border1 bg-slate-100 text-slate-700 p-3 text-sm font-semibold">@feedOk</div>
+            }
+
             @* status *@
             <div class="md:max-w-[580px] mx-auto flex-1 xl:space-y-6 space-y-3">
                 <div class="bg-white rounded-xl shadow-sm md:p-4 p-2 space-y-4 text-sm font-medium border1">

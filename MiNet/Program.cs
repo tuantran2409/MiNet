@@ -27,6 +27,7 @@ builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IFriendsService, FriendsService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IRepoBookmarksService, RepoBookmarksService>();
 
 
 //Identity configuration

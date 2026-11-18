@@ -26,6 +26,8 @@ namespace MiNet.Data
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<ConversationMember> ConversationMembers { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<PostRepoShare> PostRepoShares { get; set; }
+        public DbSet<RepoBookmark> RepoBookmarks { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -136,6 +138,30 @@ namespace MiNet.Data
                 .WithMany()
                 .HasForeignKey(fr => fr.ReceiverId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Repo share (1-1 with Post) & saved repos
+            modelBuilder.Entity<PostRepoShare>()
+                .HasOne(r => r.Post)
+                .WithOne(p => p.RepoShare)
+                .HasForeignKey<PostRepoShare>(r => r.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PostRepoShare>()
+                .HasIndex(r => r.PostId)
+                .IsUnique();
+
+            modelBuilder.Entity<PostRepoShare>()
+                .HasIndex(r => r.RepoFullName);
+
+            modelBuilder.Entity<RepoBookmark>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RepoBookmark>()
+                .HasIndex(b => new { b.UserId, b.RepoFullName })
+                .IsUnique();
 
             // Conversation configurations
             modelBuilder.Entity<ConversationMember>()

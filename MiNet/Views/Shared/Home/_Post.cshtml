@@ -13,17 +13,20 @@
 
     bool showAllComments = ViewData["ShowAllComment"] as bool? ?? false;
     bool showDetails = ViewData["ShowDetails"] as bool? ?? true;
+
+    // DateCreated/DateUpdate are set separately on create, so a few microseconds of drift is not an edit
+    bool isEdited = (Model.DateUpdate - Model.DateCreated) > TimeSpan.FromSeconds(1);
 }
 
-<div id="post-@Model.Id" class="bg-white rounded-xl shadow-sm text-sm font-medium border1">
+<div id="post-@Model.Id" class="bg-white rounded-xl shadow-sm text-sm font-medium text-black border1">
     @* post heading *@
     <div class="flex gap-3 sm:p-4 p-2.5 text-sm font-medium">
         <a asp-controller="Users" asp-action="Details" asp-route-userId="@Model.UserId">
-            <img src="@(!string.IsNullOrEmpty(Model.User.ProfilePictureUrl) ? Url.Content("~/" + Model.User.ProfilePictureUrl) : Url.Content("~/images/avatar/user.png"))" class="w-9 h-9 rounded-full" />
+            <img src="@(!string.IsNullOrEmpty(Model.User.ProfilePictureUrl) ? Url.Content("~/" + Model.User.ProfilePictureUrl.TrimStart('/')) : Url.Content("~/images/avatar/user.png"))" class="w-9 h-9 rounded-full" />
         </a>
         <div class="flex-1">
             <a asp-controller="Users" asp-action="Details" asp-route-userId="@Model.UserId">
-                <h4 class="text-black">@Model.User.Name</h4>
+                <div class="text-black font-semibold">@Model.User.Name</div>
                 @{
                         TimeSpan timeSpanSincePosted = DateTime.Now - Model.DateCreated;
 
@@ -37,7 +40,10 @@
                             _ => "Just now"
                         };
                     }
-                <div class="text-xs text-gray-500/80" title="@Model.DateCreated.ToString("dd/MM/yyyy hh:mm")"> @displayTime </div>
+                <div class="text-xs text-gray-500/80" title="@Model.DateCreated.ToString("dd/MM/yyyy HH:mm")">
+                    @displayTime@if (isEdited)
+                    {<span title="Edited @Model.DateUpdate.ToString("dd/MM/yyyy HH:mm")"> · Edited</span>}
+                </div>
             </a>
         </div>
 
@@ -54,6 +60,10 @@
                         </button>
                     </form>
                     <hr>
+
+                    <button type="button" onclick="openPostEditModal('@Model.Id')" class="hover:!bg-red-50 icon-link">
+                        <ion-icon class="text-xl shrink-0" name="create-outline"></ion-icon>  Edit Post
+                    </button>
 
                     <button type="button" onclick="openPostDeleteConfirmation('@Model.Id')" class="text-red-400 hover:!bg-red-50 delete-post-btn">
                         <ion-icon class="text-xl shrink-0" name="trash-bin-outline"></ion-icon>  Delete Post
@@ -73,14 +83,21 @@
         </div>
     </div>
 
-    @* post content Content = required, Image = optional *@
-    <a>
+    @* post content (optional when the post is a repo share) *@
+    @if (!string.IsNullOrWhiteSpace(Model.Content))
+    {
         <div class="sm:px-4 p-2.5 pt-0 w-full">
-            <p class="font-normal">
+            <p class="font-normal" id="post-content-@Model.Id">
                 @Model.Content
             </p>
         </div>
-    </a>
+    }
+
+    @* repo card when the post was created by sharing from Explore *@
+    @if (Model.RepoShare != null)
+    {
+        <partial name="Home/_RepoCard" model="Model.RepoShare" />
+    }
     @if (!string.IsNullOrEmpty(Model.ImageUrl))
     {
         <a asp-controller="Home" asp-action="Details" asp-route-postId="@Model.Id">
@@ -151,7 +168,7 @@
                 };
                 <div class="flex items-start gap-3 relative">
                     <a asp-controller="Users" asp-action="Details" asp-route-userId="@comment.UserId">
-                        <img src="@(!string.IsNullOrEmpty(comment.User.ProfilePictureUrl) ? Url.Content("~/" + comment.User.ProfilePictureUrl) : Url.Content("~/images/avatar/user.png"))" class="w-6 h-6 mt-1 rounded-full" />
+                        <img src="@(!string.IsNullOrEmpty(comment.User.ProfilePictureUrl) ? Url.Content("~/" + comment.User.ProfilePictureUrl.TrimStart('/')) : Url.Content("~/images/avatar/user.png"))" class="w-6 h-6 mt-1 rounded-full" />
                     </a>
                     <div class="flex-1">
                         <div class="flex justify-content-between">
